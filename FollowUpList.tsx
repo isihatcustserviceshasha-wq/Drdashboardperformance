@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PatientOutcome, OutcomeStatus } from '../types';
+import { PatientOutcome, OutcomeStatus } from './types';
 import { format } from 'date-fns';
 import { Clock, MessageSquare } from 'lucide-react';
 import { TemplateLibrary } from './TemplateLibrary';
