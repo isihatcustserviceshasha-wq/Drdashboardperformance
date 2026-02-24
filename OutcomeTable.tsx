@@ -1,5 +1,5 @@
 import React from 'react';
-import { PatientOutcome, OutcomeStatus } from '../types';
+import { PatientOutcome, OutcomeStatus } from './types';
 import { Edit2, Trash2, Phone, Calendar as CalendarIcon, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 
