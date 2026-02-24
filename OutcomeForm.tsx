@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { OutcomeStatus, DoctorName, PatientOutcome, Doctor } from '../types';
+import { OutcomeStatus, DoctorName, PatientOutcome, Doctor } from './types';
 import { PlusCircle, Save, X } from 'lucide-react';
 
 interface OutcomeFormProps {
