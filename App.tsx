@@ -1,29 +1,31 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  PatientOutcome, 
-  OutcomeStatus, 
-  DoctorPerformance, 
+import {
+  PatientOutcome,
+  OutcomeStatus,
+  DoctorPerformance,
   Doctor,
-  DoctorName 
+  DoctorName,
 } from './types';
+
 import { StatsCards } from './StatsCards';
 import { Charts } from './Charts';
 import { PerformanceTable } from './PerformanceTable';
 import { OutcomeForm } from './OutcomeForm';
 import { Filters } from './Filters';
 import { FollowUpList } from './FollowUpList';
-import { 
-  LayoutDashboard, 
-  Database, 
-  RefreshCw, 
-  Users, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Database,
+  RefreshCw,
+  Users,
+  Settings,
   Table as TableIcon,
   PlusCircle,
-  MessageSquare
+  MessageSquare,
 } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase } from './services/supabase';
+import { supabase } from './supabase';
 import { TemplateLibrary } from './TemplateLibrary';
 import { Logo } from './Logo';
 import { DoctorManagement } from './DoctorManagement';
