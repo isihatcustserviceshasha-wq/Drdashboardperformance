@@ -24,7 +24,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase } from './services/supabase';
+import { supabase } from './supabase';
 import { TemplateLibrary } from './TemplateLibrary';
 import { Logo } from './Logo';
 import { DoctorManagement } from './DoctorManagement';
