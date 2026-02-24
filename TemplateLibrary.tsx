@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FollowUpTemplate, PatientOutcome } from '../types';
-import { DEFAULT_TEMPLATES } from '../constants';
+import { DEFAULT_TEMPLATES } from './constants';
 import { Copy, Check, Search, X, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 
