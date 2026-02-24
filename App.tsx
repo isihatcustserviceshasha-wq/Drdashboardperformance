@@ -6,12 +6,12 @@ import {
   Doctor,
   DoctorName 
 } from './types';
-import { StatsCards } from './components/StatsCards';
-import { Charts } from './components/Charts';
-import { PerformanceTable } from './components/PerformanceTable';
-import { OutcomeForm } from './components/OutcomeForm';
-import { Filters } from './components/Filters';
-import { FollowUpList } from './components/FollowUpList';
+import { StatsCards } from './StatsCards';
+import { Charts } from './Charts';
+import { PerformanceTable } from './PerformanceTable';
+import { OutcomeForm } from './OutcomeForm';
+import { Filters } from './Filters';
+import { FollowUpList } from './FollowUpList';
 import { 
   LayoutDashboard, 
   Database, 
@@ -24,11 +24,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from './services/supabase';
-import { TemplateLibrary } from './components/TemplateLibrary';
-import { Logo } from './components/Logo';
-import { DoctorManagement } from './components/DoctorManagement';
-import { OutcomeTable } from './components/OutcomeTable';
-import { SuccessModal } from './components/SuccessModal';
+import { TemplateLibrary } from './TemplateLibrary';
+import { Logo } from './Logo';
+import { DoctorManagement } from './DoctorManagement';
+import { OutcomeTable } from './OutcomeTable';
+import { SuccessModal } from './SuccessModal';
 
 type View = 'dashboard' | 'records' | 'doctors' | 'templates';
 
