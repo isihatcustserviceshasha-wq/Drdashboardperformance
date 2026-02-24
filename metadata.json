@@ -1,0 +1,5 @@
+{
+  "name": "Doctor Performance Dashboard",
+  "description": "A clean clinic dashboard for tracking patient outcomes and doctor performance metrics.",
+  "requestFramePermissions": []
+}

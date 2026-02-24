@@ -1,0 +1,97 @@
+import React from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
+import { DoctorPerformance, OutcomeStatus } from '../types';
+
+interface ChartsProps {
+  performanceData: DoctorPerformance[];
+  overallStatusData: { name: string; value: number }[];
+  monthlyTrendData: { month: string; sc: number; co: number; ns: number }[];
+}
+
+const COLORS = {
+  SC: '#00A9A5', // clinic-teal
+  CO: '#2B78B7', // clinic-blue
+  NS: '#4D4D4D', // clinic-gray
+};
+
+export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusData, monthlyTrendData }) => {
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass-card p-6 h-[400px]">
+          <h3 className="text-md font-semibold text-slate-800 mb-4">Success vs Consult Only per Doctor</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={performanceData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="doctor" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+              <Tooltip 
+                cursor={{ fill: '#f8fafc' }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Legend verticalAlign="top" align="right" iconType="circle" />
+              <Bar dataKey="sc" name="Success" fill={COLORS.SC} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="co" name="Consult Only" fill={COLORS.CO} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="glass-card p-6 h-[400px]">
+          <h3 className="text-md font-semibold text-slate-800 mb-4">Overall Distribution</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={overallStatusData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {overallStatusData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % 3]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Legend verticalAlign="bottom" align="center" iconType="circle" />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="glass-card p-6 h-[400px]">
+        <h3 className="text-md font-semibold text-slate-800 mb-4">Annual Monthly Trend ({new Date().getFullYear()})</h3>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={monthlyTrendData}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+            <Tooltip 
+              cursor={{ fill: '#f8fafc' }}
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+            />
+            <Legend verticalAlign="top" align="right" iconType="circle" />
+            <Bar dataKey="sc" name="Success" stackId="a" fill={COLORS.SC} />
+            <Bar dataKey="co" name="Consult Only" stackId="a" fill={COLORS.CO} />
+            <Bar dataKey="ns" name="No Show" stackId="a" fill={COLORS.NS} radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
