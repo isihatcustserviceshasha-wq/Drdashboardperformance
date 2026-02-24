@@ -1,5 +1,5 @@
 import React from 'react';
-import { PatientOutcome, OutcomeStatus } from './types';
+import { PatientOutcome, OutcomeStatus } from '../types';
 import { Edit2, Trash2, Phone, Calendar as CalendarIcon, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -58,7 +58,7 @@ export const OutcomeTable: React.FC<OutcomeTableProps> = ({ outcomes, onEdit, on
                     <span className="text-sm text-slate-600 flex items-center gap-1">
                       <CalendarIcon className="w-3 h-3" /> {format(new Date(outcome.date), 'MMM d, yyyy')}
                     </span>
-                    <span className="text-xs text-clinic-teal font-medium mt-0.5">{outcome.doctor}</span>
+                    <span className="text-xs text-clinic-teal font-medium mt-0.5">{outcome.doctor || <span className="text-slate-300 italic font-normal">Not assigned</span>}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-center">

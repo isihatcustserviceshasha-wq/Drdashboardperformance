@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { OutcomeStatus, DoctorName, PatientOutcome, Doctor } from './types';
+import { OutcomeStatus, DoctorName, PatientOutcome, Doctor } from '../types';
 import { PlusCircle, Save, X } from 'lucide-react';
 
 interface OutcomeFormProps {
@@ -62,7 +62,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
       alert('Please select a date.');
       return;
     }
-    if (!doctor) {
+    if (status !== OutcomeStatus.NS && !doctor) {
       alert('Please select a doctor. If no doctors are available, please add one in the Doctors tab.');
       return;
     }
@@ -71,7 +71,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
       patientName,
       contactNumber,
       date,
-      doctor,
+      doctor: status === OutcomeStatus.NS ? undefined : doctor,
       status,
       notes,
     };
@@ -142,13 +142,16 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Doctor</label>
+          <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Doctor {status === OutcomeStatus.NS && <span className="text-[10px] text-slate-400 normal-case font-normal">(Optional)</span>}
+          </label>
           <select
             value={doctor}
             onChange={(e) => setDoctor(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-teal/20 focus:border-clinic-teal outline-none transition-all"
+            disabled={status === OutcomeStatus.NS}
+            className={`w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-teal/20 focus:border-clinic-teal outline-none transition-all ${status === OutcomeStatus.NS ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {activeDoctors.length === 0 && <option value="">No active doctors</option>}
+            <option value="">Select Doctor...</option>
             {activeDoctors.map((doc) => (
               <option key={doc.id} value={doc.name}>{doc.name}</option>
             ))}
@@ -170,7 +173,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
 
         <button
           type="submit"
-          disabled={activeDoctors.length === 0}
+          disabled={status !== OutcomeStatus.NS && activeDoctors.length === 0}
           className="bg-clinic-teal hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {editingOutcome ? 'Update Record' : 'Add Record'}

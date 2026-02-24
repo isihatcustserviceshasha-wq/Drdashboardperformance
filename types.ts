@@ -21,7 +21,7 @@ export interface PatientOutcome {
   patientName: string;
   contactNumber?: string;
   date: string;
-  doctor: DoctorName;
+  doctor?: DoctorName;
   status: OutcomeStatus;
   notes?: string;
   createdAt: number;

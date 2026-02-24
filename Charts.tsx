@@ -48,29 +48,31 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
           </ResponsiveContainer>
         </div>
 
-        <div className="glass-card p-6 h-[400px]">
+        <div className="glass-card p-6 h-[400px] flex flex-col">
           <h3 className="text-md font-semibold text-slate-800 mb-4">Overall Distribution</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={overallStatusData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {overallStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % 3]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-              />
-              <Legend verticalAlign="bottom" align="center" iconType="circle" />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="flex-1 min-h-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={overallStatusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {overallStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % 3]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
