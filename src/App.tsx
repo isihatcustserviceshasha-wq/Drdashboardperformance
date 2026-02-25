@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from './services/supabase';
+import { format } from 'date-fns';
 import { TemplateLibrary } from './components/TemplateLibrary';
 import { Logo } from './components/Logo';
 import { DoctorManagement } from './components/DoctorManagement';
@@ -60,6 +61,7 @@ export default function App() {
   });
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedDoctor, setSelectedDoctor] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
   const [patientSearch, setPatientSearch] = useState('');
 
   useEffect(() => {
@@ -231,6 +233,21 @@ export default function App() {
     }
   };
 
+  const handleConvertOutcome = async (outcome: PatientOutcome) => {
+    try {
+      await handleAddOutcome({
+        patientName: outcome.patientName,
+        contactNumber: outcome.contactNumber,
+        date: new Date().toISOString().split('T')[0],
+        doctor: outcome.doctor,
+        status: OutcomeStatus.SC,
+        notes: `[Follow-up Success from record on ${format(new Date(outcome.date), 'MMM d, yyyy')}]`
+      });
+    } catch (error) {
+      console.error('Error creating follow-up outcome:', error);
+    }
+  };
+
   // Doctor CRUD
   const handleCreateDoctor = async (name: string) => {
     try {
@@ -322,10 +339,11 @@ export default function App() {
     return outcomes.filter((outcome) => {
       const dateMatch = (!startDate || outcome.date >= startDate) && (!endDate || outcome.date <= endDate);
       const doctorMatch = selectedDoctor === 'All' || outcome.doctor === selectedDoctor;
+      const statusMatch = selectedStatus === 'All' || outcome.status === selectedStatus;
       const patientMatch = outcome.patientName.toLowerCase().includes(patientSearch.toLowerCase());
-      return dateMatch && doctorMatch && patientMatch;
+      return dateMatch && doctorMatch && statusMatch && patientMatch;
     });
-  }, [outcomes, startDate, endDate, selectedDoctor, patientSearch]);
+  }, [outcomes, startDate, endDate, selectedDoctor, selectedStatus, patientSearch]);
 
   const performanceData = useMemo(() => {
     const activeDoctorNames = doctors.filter(d => d.isActive).map(d => d.name);
@@ -388,6 +406,7 @@ export default function App() {
     setStartDate('');
     setEndDate('');
     setSelectedDoctor('All');
+    setSelectedStatus('All');
     setPatientSearch('');
   };
 
@@ -488,10 +507,12 @@ export default function App() {
                 startDate={startDate}
                 endDate={endDate}
                 selectedDoctor={selectedDoctor}
+                selectedStatus={selectedStatus}
                 patientSearch={patientSearch}
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
                 onDoctorChange={setSelectedDoctor}
+                onStatusChange={setSelectedStatus}
                 onPatientSearchChange={setPatientSearch}
                 onReset={handleResetFilters}
                 doctors={doctors}
@@ -544,10 +565,12 @@ export default function App() {
                 startDate={startDate}
                 endDate={endDate}
                 selectedDoctor={selectedDoctor}
+                selectedStatus={selectedStatus}
                 patientSearch={patientSearch}
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
                 onDoctorChange={setSelectedDoctor}
+                onStatusChange={setSelectedStatus}
                 onPatientSearchChange={setPatientSearch}
                 onReset={handleResetFilters}
                 doctors={doctors}
@@ -561,6 +584,7 @@ export default function App() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onDelete={handleDeleteOutcome}
+                onConvert={handleConvertOutcome}
               />
             </motion.div>
           )}

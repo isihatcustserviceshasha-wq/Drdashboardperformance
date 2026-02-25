@@ -39,60 +39,78 @@ export const Filters: React.FC<FiltersProps> = ({
       </div>
 
       <div className="flex items-center gap-4 flex-wrap flex-1 min-w-[300px]">
+        {/* Date Filter */}
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-slate-400" />
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => onStartDateChange(e.target.value)}
-            className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 w-32 sm:w-auto"
-          />
-          <span className="text-slate-400 text-xs">to</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => onEndDateChange(e.target.value)}
-            className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 w-32 sm:w-auto"
-          />
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase text-slate-400 font-bold leading-none mb-1">Date Range</span>
+            <div className="flex items-center gap-1">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => onStartDateChange(e.target.value)}
+                className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 w-32 sm:w-auto"
+              />
+              <span className="text-slate-400 text-xs">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => onEndDateChange(e.target.value)}
+                className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 w-32 sm:w-auto"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-4">
-          <User className="w-4 h-4 text-slate-400" />
-          <select
-            value={selectedDoctor}
-            onChange={(e) => onDoctorChange(e.target.value)}
-            className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[120px]"
-          >
-            <option value="All">All Doctors</option>
-            {doctors.map((doc) => (
-              <option key={doc.id} value={doc.name}>{doc.name}</option>
-            ))}
-          </select>
-        </div>
-
+        {/* Status Filter */}
         <div className="flex items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-4">
           <Activity className="w-4 h-4 text-slate-400" />
-          <select
-            value={selectedStatus}
-            onChange={(e) => onStatusChange(e.target.value)}
-            className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[120px]"
-          >
-            <option value="All">All Statuses</option>
-            <option value="Success">Success</option>
-            <option value="Consult Only">Consult Only</option>
-            <option value="No Show">No Show</option>
-          </select>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase text-slate-400 font-bold leading-none mb-1">Status</span>
+            <select
+              value={selectedStatus}
+              onChange={(e) => onStatusChange(e.target.value)}
+              className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[120px]"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Success">Success</option>
+              <option value="Consult Only">Consult Only</option>
+              <option value="No Show">No Show</option>
+            </select>
+          </div>
         </div>
 
+        {/* Doctor Filter */}
+        <div className="flex items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-4">
+          <User className="w-4 h-4 text-slate-400" />
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase text-slate-400 font-bold leading-none mb-1">Doctor</span>
+            <select
+              value={selectedDoctor}
+              onChange={(e) => onDoctorChange(e.target.value)}
+              className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[120px]"
+            >
+              <option value="All">All Doctors</option>
+              {doctors.map((doc) => (
+                <option key={doc.id} value={doc.name}>{doc.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Search Filter */}
         <div className="flex items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-4 flex-1 min-w-[200px]">
           <Search className="w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search patient name..."
-            value={patientSearch}
-            onChange={(e) => onPatientSearchChange(e.target.value)}
-            className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 w-full"
-          />
+          <div className="flex flex-col w-full">
+            <span className="text-[10px] uppercase text-slate-400 font-bold leading-none mb-1">Patient Search</span>
+            <input
+              type="text"
+              placeholder="Search patient name..."
+              value={patientSearch}
+              onChange={(e) => onPatientSearchChange(e.target.value)}
+              className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 w-full"
+            />
+          </div>
         </div>
       </div>
 

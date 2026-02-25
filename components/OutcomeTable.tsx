@@ -1,15 +1,16 @@
 import React from 'react';
 import { PatientOutcome, OutcomeStatus } from '../types';
-import { Edit2, Trash2, Phone, Calendar as CalendarIcon, FileText } from 'lucide-react';
+import { Edit2, Trash2, Phone, Calendar as CalendarIcon, FileText, CheckCircle2, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface OutcomeTableProps {
   outcomes: PatientOutcome[];
   onEdit: (outcome: PatientOutcome) => void;
   onDelete: (id: string) => void;
+  onConvert: (outcome: PatientOutcome) => void;
 }
 
-export const OutcomeTable: React.FC<OutcomeTableProps> = ({ outcomes, onEdit, onDelete }) => {
+export const OutcomeTable: React.FC<OutcomeTableProps> = ({ outcomes, onEdit, onDelete, onConvert }) => {
   const getStatusStyles = (status: OutcomeStatus) => {
     switch (status) {
       case OutcomeStatus.SC:
@@ -80,6 +81,15 @@ export const OutcomeTable: React.FC<OutcomeTableProps> = ({ outcomes, onEdit, on
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
+                    {outcome.status === OutcomeStatus.CO && (
+                      <button 
+                        onClick={() => onConvert(outcome)}
+                        className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        title="Convert to Success (Creates new record)"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                      </button>
+                    )}
                     <button 
                       onClick={() => onEdit(outcome)}
                       className="p-1.5 text-clinic-blue hover:bg-blue-50 rounded-lg transition-colors"
