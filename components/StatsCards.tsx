@@ -6,9 +6,10 @@ interface StatsCardsProps {
   sc: number;
   co: number;
   ns: number;
+  onStatClick: (label: string) => void;
 }
 
-export const StatsCards: React.FC<StatsCardsProps> = ({ total, sc, co, ns }) => {
+export const StatsCards: React.FC<StatsCardsProps> = ({ total, sc, co, ns, onStatClick }) => {
   const stats = [
     { label: 'Total Cases', value: total, icon: Users, color: 'text-clinic-blue', bg: 'bg-blue-50' },
     { label: 'Total Success', value: sc, icon: CheckCircle2, color: 'text-clinic-teal', bg: 'bg-teal-50' },
@@ -19,7 +20,11 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ total, sc, co, ns }) => 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => (
-        <div key={stat.label} className="glass-card p-6 flex items-center gap-4">
+        <button 
+          key={stat.label} 
+          onClick={() => onStatClick(stat.label)}
+          className="glass-card p-6 flex items-center gap-4 hover:border-clinic-teal/50 hover:shadow-md transition-all text-left active:scale-95"
+        >
           <div className={`${stat.bg} p-3 rounded-xl`}>
             <stat.icon className={`w-6 h-6 ${stat.color}`} />
           </div>
@@ -27,7 +32,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ total, sc, co, ns }) => 
             <p className="text-sm font-medium text-slate-500">{stat.label}</p>
             <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );

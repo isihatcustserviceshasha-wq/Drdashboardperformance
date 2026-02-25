@@ -30,6 +30,7 @@ import { Logo } from './components/Logo';
 import { DoctorManagement } from './components/DoctorManagement';
 import { OutcomeTable } from './components/OutcomeTable';
 import { SuccessModal } from './components/SuccessModal';
+import { PatientDetailsModal } from './components/PatientDetailsModal';
 
 type View = 'dashboard' | 'records' | 'doctors' | 'templates';
 
@@ -45,6 +46,11 @@ export default function App() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [successTitle, setSuccessTitle] = useState('Success!');
+
+  // Details Modal State
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [detailsTitle, setDetailsTitle] = useState('');
+  const [detailsStatus, setDetailsStatus] = useState<OutcomeStatus | 'All'>('All');
   
   // Filters
   const [startDate, setStartDate] = useState(() => {
@@ -54,6 +60,7 @@ export default function App() {
   });
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedDoctor, setSelectedDoctor] = useState('All');
+  const [patientSearch, setPatientSearch] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -315,9 +322,10 @@ export default function App() {
     return outcomes.filter((outcome) => {
       const dateMatch = (!startDate || outcome.date >= startDate) && (!endDate || outcome.date <= endDate);
       const doctorMatch = selectedDoctor === 'All' || outcome.doctor === selectedDoctor;
-      return dateMatch && doctorMatch;
+      const patientMatch = outcome.patientName.toLowerCase().includes(patientSearch.toLowerCase());
+      return dateMatch && doctorMatch && patientMatch;
     });
-  }, [outcomes, startDate, endDate, selectedDoctor]);
+  }, [outcomes, startDate, endDate, selectedDoctor, patientSearch]);
 
   const performanceData = useMemo(() => {
     const activeDoctorNames = doctors.filter(d => d.isActive).map(d => d.name);
@@ -380,6 +388,16 @@ export default function App() {
     setStartDate('');
     setEndDate('');
     setSelectedDoctor('All');
+    setPatientSearch('');
+  };
+
+  const handleStatClick = (label: string) => {
+    setDetailsTitle(label);
+    if (label === 'Total Success') setDetailsStatus(OutcomeStatus.SC);
+    else if (label === 'Total Consult Only') setDetailsStatus(OutcomeStatus.CO);
+    else if (label === 'Total No Show') setDetailsStatus(OutcomeStatus.NS);
+    else setDetailsStatus('All');
+    setIsDetailsOpen(true);
   };
 
   return (
@@ -470,14 +488,16 @@ export default function App() {
                 startDate={startDate}
                 endDate={endDate}
                 selectedDoctor={selectedDoctor}
+                patientSearch={patientSearch}
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
                 onDoctorChange={setSelectedDoctor}
+                onPatientSearchChange={setPatientSearch}
                 onReset={handleResetFilters}
                 doctors={doctors}
               />
 
-              <StatsCards {...stats} />
+              <StatsCards {...stats} onStatClick={handleStatClick} />
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
@@ -524,9 +544,11 @@ export default function App() {
                 startDate={startDate}
                 endDate={endDate}
                 selectedDoctor={selectedDoctor}
+                patientSearch={patientSearch}
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
                 onDoctorChange={setSelectedDoctor}
+                onPatientSearchChange={setPatientSearch}
                 onReset={handleResetFilters}
                 doctors={doctors}
               />
@@ -572,6 +594,14 @@ export default function App() {
         onClose={() => setShowSuccessModal(false)}
         title={successTitle}
         message={successMessage}
+      />
+
+      <PatientDetailsModal
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        title={detailsTitle}
+        outcomes={filteredOutcomes}
+        status={detailsStatus}
       />
     </div>
   );
