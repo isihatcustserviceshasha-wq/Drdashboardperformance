@@ -21,7 +21,8 @@ import {
   Settings, 
   Table as TableIcon,
   PlusCircle,
-  MessageSquare
+  MessageSquare,
+  BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from './services/supabase';
@@ -32,8 +33,9 @@ import { DoctorManagement } from './components/DoctorManagement';
 import { OutcomeTable } from './components/OutcomeTable';
 import { SuccessModal } from './components/SuccessModal';
 import { PatientDetailsModal } from './components/PatientDetailsModal';
+import { AnnualPerformance } from './components/AnnualPerformance';
 
-type View = 'dashboard' | 'records' | 'doctors' | 'templates';
+type View = 'dashboard' | 'records' | 'doctors' | 'templates' | 'performance';
 
 export default function App() {
   const [outcomes, setOutcomes] = useState<PatientOutcome[]>([]);
@@ -62,6 +64,7 @@ export default function App() {
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedDoctor, setSelectedDoctor] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [patientSearch, setPatientSearch] = useState('');
 
   useEffect(() => {
@@ -407,6 +410,7 @@ export default function App() {
     setEndDate('');
     setSelectedDoctor('All');
     setSelectedStatus('All');
+    setSelectedYear(new Date().getFullYear());
     setPatientSearch('');
   };
 
@@ -450,6 +454,14 @@ export default function App() {
               }`}
             >
               <Users className="w-4 h-4" /> Doctors
+            </button>
+            <button 
+              onClick={() => setCurrentView('performance')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                currentView === 'performance' ? 'bg-white text-clinic-teal shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" /> Performance
             </button>
           </nav>
           <div className="flex items-center gap-4">
@@ -508,11 +520,13 @@ export default function App() {
                 endDate={endDate}
                 selectedDoctor={selectedDoctor}
                 selectedStatus={selectedStatus}
+                selectedYear={selectedYear}
                 patientSearch={patientSearch}
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
                 onDoctorChange={setSelectedDoctor}
                 onStatusChange={setSelectedStatus}
+                onYearChange={setSelectedYear}
                 onPatientSearchChange={setPatientSearch}
                 onReset={handleResetFilters}
                 doctors={doctors}
@@ -566,11 +580,13 @@ export default function App() {
                 endDate={endDate}
                 selectedDoctor={selectedDoctor}
                 selectedStatus={selectedStatus}
+                selectedYear={selectedYear}
                 patientSearch={patientSearch}
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
                 onDoctorChange={setSelectedDoctor}
                 onStatusChange={setSelectedStatus}
+                onYearChange={setSelectedYear}
                 onPatientSearchChange={setPatientSearch}
                 onReset={handleResetFilters}
                 doctors={doctors}
@@ -585,6 +601,30 @@ export default function App() {
                 }}
                 onDelete={handleDeleteOutcome}
                 onConvert={handleConvertOutcome}
+              />
+            </motion.div>
+          )}
+
+          {currentView === 'performance' && (
+            <motion.div
+              key="performance"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900">Annual Doctor Performance</h1>
+                  <p className="text-slate-500">Comprehensive yearly breakdown and trends</p>
+                </div>
+              </div>
+
+              <AnnualPerformance 
+                outcomes={outcomes} 
+                doctors={doctors} 
+                selectedYear={selectedYear} 
+                onYearChange={setSelectedYear}
               />
             </motion.div>
           )}

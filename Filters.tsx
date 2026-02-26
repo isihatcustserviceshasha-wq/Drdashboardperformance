@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Doctor } from '../types';
 import { Filter, Calendar, User, Search, Activity } from 'lucide-react';
 
@@ -7,11 +7,13 @@ interface FiltersProps {
   endDate: string;
   selectedDoctor: string;
   selectedStatus: string;
+  selectedYear: number;
   patientSearch: string;
   onStartDateChange: (val: string) => void;
   onEndDateChange: (val: string) => void;
   onDoctorChange: (val: string) => void;
   onStatusChange: (val: string) => void;
+  onYearChange: (val: number) => void;
   onPatientSearchChange: (val: string) => void;
   onReset: () => void;
   doctors: Doctor[];
@@ -22,15 +24,27 @@ export const Filters: React.FC<FiltersProps> = ({
   endDate,
   selectedDoctor,
   selectedStatus,
+  selectedYear,
   patientSearch,
   onStartDateChange,
   onEndDateChange,
   onDoctorChange,
   onStatusChange,
+  onYearChange,
   onPatientSearchChange,
   onReset,
   doctors,
 }) => {
+  const years = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2024;
+    const yearsArr = [];
+    for (let y = currentYear; y >= startYear; y--) {
+      yearsArr.push(y);
+    }
+    return yearsArr;
+  }, []);
+
   return (
     <div className="glass-card p-4 flex flex-wrap items-center gap-4 sm:gap-6">
       <div className="flex items-center gap-2 text-slate-500 mr-2">
@@ -39,8 +53,25 @@ export const Filters: React.FC<FiltersProps> = ({
       </div>
 
       <div className="flex items-center gap-4 flex-wrap flex-1 min-w-[300px]">
-        {/* Date Filter */}
+        {/* Year Filter */}
         <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-slate-400" />
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase text-slate-400 font-bold leading-none mb-1">Year</span>
+            <select
+              value={selectedYear}
+              onChange={(e) => onYearChange(parseInt(e.target.value))}
+              className="text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[80px]"
+            >
+              {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Date Filter */}
+        <div className="flex items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-4">
           <Calendar className="w-4 h-4 text-slate-400" />
           <div className="flex flex-col">
             <span className="text-[10px] uppercase text-slate-400 font-bold leading-none mb-1">Date Range</span>
