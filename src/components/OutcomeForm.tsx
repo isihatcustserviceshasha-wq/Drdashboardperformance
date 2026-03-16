@@ -183,32 +183,17 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
           {editingOutcome ? 'Update Record' : 'Add Record'}
         </button>
 
-        <div className="md:col-span-2 lg:col-span-6 flex flex-col md:flex-row gap-4">
-          <div className="flex-1 space-y-1">
+        <div className="md:col-span-2 lg:col-span-6">
+          <div className="space-y-1">
             <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Notes (Optional)</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={1}
+              rows={2}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-teal/20 focus:border-clinic-teal outline-none transition-all resize-none"
               placeholder="Add any additional details..."
             />
           </div>
-          
-          {(status === OutcomeStatus.CO || status === OutcomeStatus.NS) && (
-            <div className="flex items-center gap-2 self-end pb-2">
-              <input
-                type="checkbox"
-                id="needsFollowUp"
-                checked={needsFollowUp}
-                onChange={(e) => setNeedsFollowUp(e.target.checked)}
-                className="w-4 h-4 text-clinic-teal border-slate-300 rounded focus:ring-clinic-teal"
-              />
-              <label htmlFor="needsFollowUp" className="text-sm font-medium text-slate-700 cursor-pointer">
-                Mark for Follow Up
-              </label>
-            </div>
-          )}
         </div>
       </form>
     </div>

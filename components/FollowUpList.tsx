@@ -14,7 +14,7 @@ export const FollowUpList: React.FC<FollowUpListProps> = ({ outcomes, onToggleFo
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const coCases = outcomes
-    .filter(o => o.status === OutcomeStatus.CO && o.needsFollowUp && !o.followedUp)
+    .filter(o => o.status === OutcomeStatus.CO && !o.followedUp)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleFollowUp = (patient: PatientOutcome) => {
@@ -30,6 +30,15 @@ export const FollowUpList: React.FC<FollowUpListProps> = ({ outcomes, onToggleFo
           Consult Only Follow-up List
         </h2>
         <div className="flex items-center gap-4">
+          <a 
+            href="https://clinic-templates-isihat.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs font-medium text-slate-400 hover:text-clinic-teal flex items-center gap-1"
+          >
+            <MessageSquare className="w-3 h-3" />
+            iSihat Library
+          </a>
           <button 
             onClick={() => setIsLibraryOpen(true)}
             className="text-xs font-medium text-clinic-teal hover:text-clinic-blue flex items-center gap-1"

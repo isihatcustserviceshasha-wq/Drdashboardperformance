@@ -14,7 +14,7 @@ export const NoShowList: React.FC<NoShowListProps> = ({ outcomes, onToggleFollow
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const nsCases = outcomes
-    .filter(o => o.status === OutcomeStatus.NS && o.needsFollowUp && !o.followedUp)
+    .filter(o => o.status === OutcomeStatus.NS && !o.followedUp)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleFollowUp = (patient: PatientOutcome) => {
@@ -30,6 +30,15 @@ export const NoShowList: React.FC<NoShowListProps> = ({ outcomes, onToggleFollow
           No Show Follow-up List
         </h2>
         <div className="flex items-center gap-4">
+          <a 
+            href="https://clinic-templates-isihat.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs font-medium text-slate-400 hover:text-clinic-teal flex items-center gap-1"
+          >
+            <MessageSquare className="w-3 h-3" />
+            iSihat Library
+          </a>
           <span className="text-xs font-medium bg-rose-100 text-rose-800 px-2 py-1 rounded-full">
             {nsCases.length} Pending
           </span>
