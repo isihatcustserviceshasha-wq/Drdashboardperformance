@@ -98,6 +98,8 @@ export default function App() {
           doctor: item.doctor,
           status: item.status as OutcomeStatus,
           notes: item.notes,
+          needsFollowUp: item.needs_follow_up,
+          followedUp: item.followed_up,
           createdAt: new Date(item.created_at).getTime(),
         }));
         setOutcomes(mappedOutcomes);
@@ -133,7 +135,9 @@ export default function App() {
           date: newOutcome.date,
           doctor: newOutcome.doctor,
           status: newOutcome.status,
-          notes: newOutcome.notes
+          notes: newOutcome.notes,
+          needs_follow_up: newOutcome.needsFollowUp,
+          followed_up: false
         }])
         .select();
 
@@ -148,6 +152,8 @@ export default function App() {
           doctor: item.doctor,
           status: item.status as OutcomeStatus,
           notes: item.notes,
+          needsFollowUp: item.needs_follow_up,
+          followedUp: item.followed_up,
           createdAt: new Date(item.created_at).getTime(),
         };
         setOutcomes(prev => [mappedItem, ...prev]);
@@ -176,6 +182,8 @@ export default function App() {
       if (updates.doctor) dbUpdates.doctor = updates.doctor;
       if (updates.status) dbUpdates.status = updates.status;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if (updates.needsFollowUp !== undefined) dbUpdates.needs_follow_up = updates.needsFollowUp;
+      if (updates.followedUp !== undefined) dbUpdates.followed_up = updates.followedUp;
 
       const { data, error } = await supabase
         .from('patient_outcomes')
@@ -194,6 +202,8 @@ export default function App() {
           doctor: item.doctor,
           status: item.status as OutcomeStatus,
           notes: item.notes,
+          needsFollowUp: item.needs_follow_up,
+          followedUp: item.followed_up,
           createdAt: new Date(item.created_at).getTime(),
         };
         setOutcomes(prev => prev.map(o => o.id === id ? mappedItem : o));
@@ -544,8 +554,14 @@ export default function App() {
                   <PerformanceTable data={performanceData} />
                 </div>
                 <div className="space-y-8">
-                  <FollowUpList outcomes={filteredOutcomes} />
-                  <NoShowList outcomes={filteredOutcomes} />
+                  <FollowUpList 
+                    outcomes={filteredOutcomes} 
+                    onToggleFollowUp={(id, followedUp) => handleUpdateOutcome(id, { followedUp })}
+                  />
+                  <NoShowList 
+                    outcomes={filteredOutcomes} 
+                    onToggleFollowUp={(id, followedUp) => handleUpdateOutcome(id, { followedUp })}
+                  />
                 </div>
               </div>
             </motion.div>

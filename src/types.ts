@@ -23,6 +23,8 @@ export interface PatientOutcome {
   doctor?: DoctorName;
   status: OutcomeStatus;
   notes?: string;
+  needsFollowUp?: boolean;
+  followedUp?: boolean;
   createdAt: number;
 }
 

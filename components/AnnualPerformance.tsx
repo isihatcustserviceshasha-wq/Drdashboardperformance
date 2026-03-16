@@ -13,7 +13,8 @@ import {
   Bar
 } from 'recharts';
 import { format } from 'date-fns';
-import { User, TrendingUp, Award, Calendar } from 'lucide-react';
+import { User, TrendingUp, Award, Calendar, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface AnnualPerformanceProps {
   outcomes: PatientOutcome[];
@@ -94,6 +95,36 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
     return stats;
   }, [outcomes, doctors, selectedYear]);
 
+  const handleDownloadExcel = () => {
+    const wb = XLSX.utils.book_new();
+    
+    // Monthly Data Sheet
+    const monthlyWS = XLSX.utils.json_to_sheet(annualData.map(d => ({
+      'Month': d.month,
+      'Success (SC)': d.sc,
+      'Consult Only (CO)': d.co,
+      'No Show (NS)': d.ns,
+      'Total': d.total,
+      'Conversion Rate (%)': d.conversionRate
+    })));
+    XLSX.utils.book_append_sheet(wb, monthlyWS, "Monthly Performance");
+
+    // Doctor Ranking Sheet
+    const doctorWS = XLSX.utils.json_to_sheet(doctorStats.map((d, idx) => ({
+      'Rank': idx + 1,
+      'Doctor Name': d.name,
+      'Success (SC)': d.sc,
+      'Consult Only (CO)': d.co,
+      'Total': d.total,
+      'Conversion Rate (%)': parseFloat(d.conversionRate.toFixed(1))
+    })));
+    XLSX.utils.book_append_sheet(wb, doctorWS, "Doctor Ranking");
+
+    // Save File
+    const fileName = `Performance_${selectedYear}${selectedDoctor !== 'All' ? '_' + selectedDoctor : ''}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
   const topDoctor = doctorStats[0];
 
   return (
@@ -137,6 +168,13 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
             <p className="text-sm text-slate-500">Monthly breakdown of outcomes for {selectedYear}</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={handleDownloadExcel}
+              className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-sm font-bold hover:bg-emerald-100 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export Excel
+            </button>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-slate-400" />
               <select

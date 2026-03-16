@@ -6,14 +6,15 @@ import { TemplateLibrary } from './TemplateLibrary';
 
 interface NoShowListProps {
   outcomes: PatientOutcome[];
+  onToggleFollowUp: (id: string, followedUp: boolean) => void;
 }
 
-export const NoShowList: React.FC<NoShowListProps> = ({ outcomes }) => {
+export const NoShowList: React.FC<NoShowListProps> = ({ outcomes, onToggleFollowUp }) => {
   const [selectedPatient, setSelectedPatient] = useState<PatientOutcome | undefined>();
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const nsCases = outcomes
-    .filter(o => o.status === OutcomeStatus.NS)
+    .filter(o => o.status === OutcomeStatus.NS && o.needsFollowUp && !o.followedUp)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleFollowUp = (patient: PatientOutcome) => {
@@ -37,12 +38,13 @@ export const NoShowList: React.FC<NoShowListProps> = ({ outcomes }) => {
       <div className="max-h-[400px] overflow-y-auto">
         {nsCases.length === 0 ? (
           <div className="p-8 text-center text-slate-400 italic">
-            No "No Show" cases found.
+            No "No Show" cases pending follow-up.
           </div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-slate-50 border-b border-slate-100 z-10">
               <tr>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Done</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Patient</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
@@ -52,6 +54,14 @@ export const NoShowList: React.FC<NoShowListProps> = ({ outcomes }) => {
             <tbody className="divide-y divide-slate-100">
               {nsCases.map((outcome) => (
                 <tr key={outcome.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={outcome.followedUp}
+                      onChange={(e) => onToggleFollowUp(outcome.id, e.target.checked)}
+                      className="w-4 h-4 text-clinic-teal border-slate-300 rounded focus:ring-clinic-teal"
+                    />
+                  </td>
                   <td className="px-6 py-4 font-medium text-slate-900">{outcome.patientName}</td>
                   <td className="px-6 py-4 text-slate-600 text-sm">{outcome.contactNumber || '-'}</td>
                   <td className="px-6 py-4 text-slate-500 text-sm">

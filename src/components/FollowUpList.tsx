@@ -6,13 +6,16 @@ import { TemplateLibrary } from './TemplateLibrary';
 
 interface FollowUpListProps {
   outcomes: PatientOutcome[];
+  onToggleFollowUp: (id: string, followedUp: boolean) => void;
 }
 
-export const FollowUpList: React.FC<FollowUpListProps> = ({ outcomes }) => {
+export const FollowUpList: React.FC<FollowUpListProps> = ({ outcomes, onToggleFollowUp }) => {
   const [selectedPatient, setSelectedPatient] = useState<PatientOutcome | undefined>();
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
-  const coCases = outcomes.filter(o => o.status === OutcomeStatus.CO).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const coCases = outcomes
+    .filter(o => o.status === OutcomeStatus.CO && o.needsFollowUp && !o.followedUp)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleFollowUp = (patient: PatientOutcome) => {
     setSelectedPatient(patient);
@@ -42,15 +45,15 @@ export const FollowUpList: React.FC<FollowUpListProps> = ({ outcomes }) => {
       <div className="max-h-[400px] overflow-y-auto">
         {coCases.length === 0 ? (
           <div className="p-8 text-center text-slate-400 italic">
-            No consultation-only cases found.
+            No consultation-only cases pending follow-up.
           </div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-slate-50 border-b border-slate-100 z-10">
               <tr>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Done</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Patient</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Doctor</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
               </tr>
@@ -58,9 +61,16 @@ export const FollowUpList: React.FC<FollowUpListProps> = ({ outcomes }) => {
             <tbody className="divide-y divide-slate-100">
               {coCases.map((outcome) => (
                 <tr key={outcome.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={outcome.followedUp}
+                      onChange={(e) => onToggleFollowUp(outcome.id, e.target.checked)}
+                      className="w-4 h-4 text-clinic-teal border-slate-300 rounded focus:ring-clinic-teal"
+                    />
+                  </td>
                   <td className="px-6 py-4 font-medium text-slate-900">{outcome.patientName}</td>
                   <td className="px-6 py-4 text-slate-600 text-sm">{outcome.contactNumber || '-'}</td>
-                  <td className="px-6 py-4 text-slate-600">{outcome.doctor}</td>
                   <td className="px-6 py-4 text-slate-500 text-sm">
                     {format(new Date(outcome.date), 'dd MMM yyyy')}
                   </td>

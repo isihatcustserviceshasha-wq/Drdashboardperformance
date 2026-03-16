@@ -36,6 +36,14 @@ export const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ isOpen, onClos
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleWhatsApp = (template: FollowUpTemplate) => {
+    if (!selectedPatient?.contactNumber) return;
+    const text = replacePlaceholders(template.content);
+    const encodedText = encodeURIComponent(text);
+    const phoneNumber = selectedPatient.contactNumber.replace(/\D/g, '');
+    window.open(`https://wa.me/${phoneNumber}?text=${encodedText}`, '_blank');
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
@@ -83,20 +91,32 @@ export const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ isOpen, onClos
                     {template.category}
                   </span>
                 </div>
-                <button
-                  onClick={() => handleCopy(template)}
-                  className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-medium ${
-                    copiedId === template.id 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-white border border-slate-200 text-slate-600 hover:border-clinic-teal hover:text-clinic-teal'
-                  }`}
-                >
-                  {copiedId === template.id ? (
-                    <><Check className="w-3 h-3" /> Copied</>
-                  ) : (
-                    <><Copy className="w-3 h-3" /> Copy Text</>
+                <div className="flex items-center gap-2">
+                  {selectedPatient?.contactNumber && (
+                    <button
+                      onClick={() => handleWhatsApp(template)}
+                      className="p-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-all flex items-center gap-2 text-xs font-medium"
+                      title="Send via WhatsApp"
+                    >
+                      <MessageSquare className="w-3 h-3" />
+                      WhatsApp
+                    </button>
                   )}
-                </button>
+                  <button
+                    onClick={() => handleCopy(template)}
+                    className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-medium ${
+                      copiedId === template.id 
+                        ? 'bg-emerald-500 text-white' 
+                        : 'bg-white border border-slate-200 text-slate-600 hover:border-clinic-teal hover:text-clinic-teal'
+                    }`}
+                  >
+                    {copiedId === template.id ? (
+                      <><Check className="w-3 h-3" /> Copied</>
+                    ) : (
+                      <><Copy className="w-3 h-3" /> Copy Text</>
+                    )}
+                  </button>
+                </div>
               </div>
               <p className="text-sm text-slate-600 leading-relaxed italic">
                 "{replacePlaceholders(template.content)}"
