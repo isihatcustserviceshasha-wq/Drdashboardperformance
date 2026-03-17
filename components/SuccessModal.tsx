@@ -7,13 +7,15 @@ interface SuccessModalProps {
   onClose: () => void;
   message: string;
   title?: string;
+  onUndo?: () => void;
 }
 
 export const SuccessModal: React.FC<SuccessModalProps> = ({ 
   isOpen, 
   onClose, 
   message, 
-  title = "Success!" 
+  title = "Success!",
+  onUndo
 }) => {
   return (
     <AnimatePresence>
@@ -38,12 +40,27 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
               <p className="text-slate-500 mb-8">{message}</p>
-              <button
-                onClick={onClose}
-                className="w-full py-3 px-4 bg-clinic-teal hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-clinic-teal/20"
-              >
-                Continue
-              </button>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 px-4 bg-clinic-teal hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-clinic-teal/20"
+                >
+                  Continue
+                </button>
+                
+                {onUndo && (
+                  <button
+                    onClick={() => {
+                      onUndo();
+                      onClose();
+                    }}
+                    className="w-full py-3 px-4 bg-white border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition-colors"
+                  >
+                    Undo Action
+                  </button>
+                )}
+              </div>
             </div>
             <button
               onClick={onClose}

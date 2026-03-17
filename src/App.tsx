@@ -50,6 +50,7 @@ export default function App() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [successTitle, setSuccessTitle] = useState('Success!');
+  const [lastCreatedId, setLastCreatedId] = useState<string | null>(null);
 
   // Details Modal State
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -161,6 +162,7 @@ export default function App() {
           createdAt: new Date(item.created_at).getTime(),
         };
         setOutcomes(prev => [mappedItem, ...prev]);
+        setLastCreatedId(item.id);
         
         // Show success modal
         setSuccessTitle(newOutcome.status === OutcomeStatus.SC ? 'Great News!' : 'Record Saved');
@@ -241,6 +243,7 @@ export default function App() {
       
       console.log('Delete successful in Supabase, updating local state');
       setOutcomes(prev => prev.filter(o => o.id !== id));
+      if (lastCreatedId === id) setLastCreatedId(null);
       
       // Show success modal for deletion too
       setSuccessTitle('Record Deleted');
@@ -262,8 +265,16 @@ export default function App() {
         status: OutcomeStatus.SC,
         notes: `[Follow-up Success from record on ${format(new Date(outcome.date), 'MMM d, yyyy')}]`
       });
+      setSuccessTitle('Conversion Success!');
     } catch (error) {
       console.error('Error creating follow-up outcome:', error);
+    }
+  };
+
+  const handleUndo = async () => {
+    if (lastCreatedId) {
+      await handleDeleteOutcome(lastCreatedId);
+      setLastCreatedId(null);
     }
   };
 
@@ -523,14 +534,6 @@ export default function App() {
                 </div>
               </div>
 
-              <OutcomeForm 
-                onAddOutcome={handleAddOutcome} 
-                onUpdateOutcome={handleUpdateOutcome}
-                editingOutcome={editingOutcome}
-                onCancelEdit={() => setEditingOutcome(null)}
-                doctors={doctors}
-              />
-
               <Filters 
                 startDate={startDate}
                 endDate={endDate}
@@ -587,16 +590,15 @@ export default function App() {
                   <h1 className="text-2xl font-bold text-slate-900">Patient Records</h1>
                   <p className="text-slate-500">Manage all recorded outcomes</p>
                 </div>
-                <button 
-                  onClick={() => {
-                    setCurrentView('dashboard');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="flex items-center gap-2 bg-clinic-teal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
-                >
-                  <PlusCircle className="w-4 h-4" /> Add New Record
-                </button>
               </div>
+
+              <OutcomeForm 
+                onAddOutcome={handleAddOutcome} 
+                onUpdateOutcome={handleUpdateOutcome}
+                editingOutcome={editingOutcome}
+                onCancelEdit={() => setEditingOutcome(null)}
+                doctors={doctors}
+              />
 
               <Filters 
                 startDate={startDate}
@@ -619,7 +621,6 @@ export default function App() {
                 outcomes={filteredOutcomes}
                 onEdit={(outcome) => {
                   setEditingOutcome(outcome);
-                  setCurrentView('dashboard');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onDelete={handleDeleteOutcome}
@@ -678,9 +679,13 @@ export default function App() {
       
       <SuccessModal 
         isOpen={showSuccessModal} 
-        onClose={() => setShowSuccessModal(false)}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setLastCreatedId(null);
+        }}
         title={successTitle}
         message={successMessage}
+        onUndo={lastCreatedId ? handleUndo : undefined}
       />
 
       <PatientDetailsModal

@@ -42,13 +42,15 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
   }, [editingOutcome]);
 
   useEffect(() => {
-    if (!doctor && doctors.length > 0) {
+    // Only auto-select a doctor if we are NOT editing an existing record
+    // and the doctor field is currently empty.
+    if (!editingOutcome && !doctor && doctors.length > 0) {
       const activeDocs = doctors.filter(d => d.isActive);
       if (activeDocs.length > 0) {
         setDoctor(activeDocs[0].name);
       }
     }
-  }, [doctors]);
+  }, [doctors, editingOutcome, doctor]);
 
   const resetForm = () => {
     setPatientName('');
