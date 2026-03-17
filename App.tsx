@@ -34,6 +34,7 @@ import { OutcomeTable } from './components/OutcomeTable';
 import { SuccessModal } from './components/SuccessModal';
 import { PatientDetailsModal } from './components/PatientDetailsModal';
 import { AnnualPerformance } from './components/AnnualPerformance';
+import { BracesSummary } from './components/BracesSummary';
 
 type View = 'dashboard' | 'records' | 'doctors' | 'templates' | 'performance';
 
@@ -97,6 +98,7 @@ export default function App() {
           date: item.date,
           doctor: item.doctor,
           status: item.status as OutcomeStatus,
+          bracesType: item.braces_type,
           notes: item.notes,
           needsFollowUp: item.needs_follow_up,
           followedUp: item.followed_up,
@@ -135,6 +137,7 @@ export default function App() {
           date: newOutcome.date,
           doctor: newOutcome.doctor,
           status: newOutcome.status,
+          braces_type: newOutcome.bracesType,
           notes: newOutcome.notes,
           needs_follow_up: newOutcome.needsFollowUp,
           followed_up: false
@@ -151,6 +154,7 @@ export default function App() {
           date: item.date,
           doctor: item.doctor,
           status: item.status as OutcomeStatus,
+          bracesType: item.braces_type,
           notes: item.notes,
           needsFollowUp: item.needs_follow_up,
           followedUp: item.followed_up,
@@ -181,6 +185,7 @@ export default function App() {
       if (updates.date) dbUpdates.date = updates.date;
       if (updates.doctor) dbUpdates.doctor = updates.doctor;
       if (updates.status) dbUpdates.status = updates.status;
+      if (updates.bracesType) dbUpdates.braces_type = updates.bracesType;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
       if (updates.needsFollowUp !== undefined) dbUpdates.needs_follow_up = updates.needsFollowUp;
       if (updates.followedUp !== undefined) dbUpdates.followed_up = updates.followedUp;
@@ -201,6 +206,7 @@ export default function App() {
           date: item.date,
           doctor: item.doctor,
           status: item.status as OutcomeStatus,
+          bracesType: item.braces_type,
           notes: item.notes,
           needsFollowUp: item.needs_follow_up,
           followedUp: item.followed_up,
@@ -552,6 +558,7 @@ export default function App() {
                     monthlyTrendData={monthlyTrendData}
                   />
                   <PerformanceTable data={performanceData} />
+                  <BracesSummary outcomes={filteredOutcomes} />
                 </div>
                 <div className="space-y-8">
                   <FollowUpList 

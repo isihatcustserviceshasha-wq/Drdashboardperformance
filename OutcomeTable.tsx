@@ -37,6 +37,7 @@ export const OutcomeTable: React.FC<OutcomeTableProps> = ({ outcomes, onEdit, on
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Patient</th>
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date & Doctor</th>
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Status</th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Details</th>
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Notes</th>
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
             </tr>
@@ -66,6 +67,13 @@ export const OutcomeTable: React.FC<OutcomeTableProps> = ({ outcomes, onEdit, on
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyles(outcome.status)}`}>
                     {outcome.status}
                   </span>
+                </td>
+                <td className="px-6 py-4">
+                  {outcome.status === OutcomeStatus.SC && outcome.bracesType && (
+                    <span className="text-xs font-medium text-clinic-teal bg-teal-50 px-2 py-1 rounded border border-teal-100">
+                      {outcome.bracesType}
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4">
                   {outcome.notes ? (

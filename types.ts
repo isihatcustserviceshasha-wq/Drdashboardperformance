@@ -6,6 +6,15 @@ export enum OutcomeStatus {
   NS = "No Show",
 }
 
+export enum BracesType {
+  CONVENTIONAL_METAL = "Conventional Metal Braces",
+  CERAMIC = "Ceramic Braces",
+  SELF_LIGATING = "Self-Ligating Braces",
+  DAMON = "Damon Braces",
+  CERAMIC_DAMON = "Ceramic Damon Braces",
+  ALIGNERS = "Aligners",
+}
+
 export interface Doctor {
   id: string;
   name: string;
@@ -22,6 +31,7 @@ export interface PatientOutcome {
   date: string;
   doctor?: DoctorName;
   status: OutcomeStatus;
+  bracesType?: BracesType;
   notes?: string;
   needsFollowUp?: boolean;
   followedUp?: boolean;

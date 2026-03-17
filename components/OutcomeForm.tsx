@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { OutcomeStatus, DoctorName, PatientOutcome, Doctor } from '../types';
+import { OutcomeStatus, DoctorName, PatientOutcome, Doctor, BracesType } from '../types';
 import { PlusCircle, Save, X } from 'lucide-react';
 
 interface OutcomeFormProps {
@@ -22,6 +22,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [doctor, setDoctor] = useState<DoctorName>('');
   const [status, setStatus] = useState<OutcomeStatus>(OutcomeStatus.SC);
+  const [bracesType, setBracesType] = useState<BracesType | ''>('');
   const [notes, setNotes] = useState('');
   const [needsFollowUp, setNeedsFollowUp] = useState(false);
 
@@ -30,8 +31,9 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
       setPatientName(editingOutcome.patientName);
       setContactNumber(editingOutcome.contactNumber || '');
       setDate(editingOutcome.date);
-      setDoctor(editingOutcome.doctor);
+      setDoctor(editingOutcome.doctor || '');
       setStatus(editingOutcome.status);
+      setBracesType(editingOutcome.bracesType || '');
       setNotes(editingOutcome.notes || '');
       setNeedsFollowUp(editingOutcome.needsFollowUp || false);
     } else {
@@ -41,7 +43,10 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
 
   useEffect(() => {
     if (!doctor && doctors.length > 0) {
-      setDoctor(doctors[0].name);
+      const activeDocs = doctors.filter(d => d.isActive);
+      if (activeDocs.length > 0) {
+        setDoctor(activeDocs[0].name);
+      }
     }
   }, [doctors]);
 
@@ -49,8 +54,14 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
     setPatientName('');
     setContactNumber('');
     setDate(new Date().toISOString().split('T')[0]);
-    if (doctors.length > 0) setDoctor(doctors[0].name);
+    const activeDocs = doctors.filter(d => d.isActive);
+    if (activeDocs.length > 0) {
+      setDoctor(activeDocs[0].name);
+    } else {
+      setDoctor('');
+    }
     setStatus(OutcomeStatus.SC);
+    setBracesType('');
     setNotes('');
     setNeedsFollowUp(false);
   };
@@ -76,6 +87,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
       date,
       doctor: status === OutcomeStatus.NS ? undefined : doctor,
       status,
+      bracesType: status === OutcomeStatus.SC ? (bracesType as BracesType) : undefined,
       notes,
       needsFollowUp: (status === OutcomeStatus.CO || status === OutcomeStatus.NS) ? needsFollowUp : false,
     };
@@ -103,6 +115,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
         </h2>
         {editingOutcome && onCancelEdit && (
           <button 
+            type="button"
             onClick={onCancelEdit}
             className="text-xs font-medium text-slate-400 hover:text-rose-500 flex items-center gap-1"
           >
@@ -175,10 +188,26 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
           </select>
         </div>
 
+        {status === OutcomeStatus.SC && (
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Braces Type (Optional)</label>
+            <select
+              value={bracesType}
+              onChange={(e) => setBracesType(e.target.value as BracesType)}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-teal/20 focus:border-clinic-teal outline-none transition-all"
+            >
+              <option value="">Not Set / Later...</option>
+              {Object.values(BracesType).map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={status !== OutcomeStatus.NS && activeDoctors.length === 0}
-          className="bg-clinic-teal hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`bg-clinic-teal hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${status === OutcomeStatus.SC ? '' : 'lg:col-start-6'}`}
         >
           {editingOutcome ? 'Update Record' : 'Add Record'}
         </button>
