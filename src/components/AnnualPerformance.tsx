@@ -81,12 +81,14 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
       const sc = docOutcomes.filter(o => o.status === OutcomeStatus.SC).length;
       const co = docOutcomes.filter(o => o.status === OutcomeStatus.CO).length;
       const total = docOutcomes.length;
-      const conversionRate = (sc + co) > 0 ? (sc / (sc + co)) * 100 : 0;
+      const scCoTotal = sc + co;
+      const conversionRate = scCoTotal > 0 ? (sc / scCoTotal) * 100 : 0;
 
       return {
         name: doc.name,
         sc,
         co,
+        scCoTotal,
         total,
         conversionRate
       };
@@ -115,7 +117,8 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
       'Doctor Name': d.name,
       'Success (SC)': d.sc,
       'Consult Only (CO)': d.co,
-      'Total': d.total,
+      'Total': d.scCoTotal,
+      'Total Records': d.total,
       'Conversion Rate (%)': parseFloat(d.conversionRate.toFixed(1))
     })));
     XLSX.utils.book_append_sheet(wb, doctorWS, "Doctor Ranking");
@@ -257,6 +260,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Doctor</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">SC</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CO</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Total</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Rate</th>
                 </tr>
               </thead>
@@ -271,6 +275,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                     </td>
                     <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc}</td>
                     <td className="px-4 py-3 text-center text-sm text-clinic-blue font-bold">{doc.co}</td>
+                    <td className="px-4 py-3 text-center text-sm text-slate-600 font-bold">{doc.scCoTotal}</td>
                     <td className="px-4 py-3 text-center">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
                         {doc.conversionRate.toFixed(1)}%
