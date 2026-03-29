@@ -31,6 +31,7 @@ const COLORS = {
 
 export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, doctors, selectedYear, onYearChange }) => {
   const [selectedDoctor, setSelectedDoctor] = useState<string>('All');
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
 
   const years = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -97,6 +98,34 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
     return stats;
   }, [outcomes, doctors, selectedYear]);
 
+  const doctorMonthlyStats = useMemo(() => {
+    const stats = doctors.map(doc => {
+      const docOutcomes = outcomes.filter(o => {
+        const date = new Date(o.date);
+        return date.getFullYear() === selectedYear && 
+               date.getMonth() === selectedMonth && 
+               o.doctor === doc.name;
+      });
+
+      const sc = docOutcomes.filter(o => o.status === OutcomeStatus.SC).length;
+      const co = docOutcomes.filter(o => o.status === OutcomeStatus.CO).length;
+      const total = docOutcomes.length;
+      const scCoTotal = sc + co;
+      const conversionRate = scCoTotal > 0 ? (sc / scCoTotal) * 100 : 0;
+
+      return {
+        name: doc.name,
+        sc,
+        co,
+        scCoTotal,
+        total,
+        conversionRate
+      };
+    }).sort((a, b) => b.conversionRate - a.conversionRate);
+
+    return stats;
+  }, [outcomes, doctors, selectedYear, selectedMonth]);
+
   const handleDownloadExcel = () => {
     const wb = XLSX.utils.book_new();
     
@@ -121,14 +150,28 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
       'Total Records': d.total,
       'Conversion Rate (%)': parseFloat(d.conversionRate.toFixed(1))
     })));
-    XLSX.utils.book_append_sheet(wb, doctorWS, "Doctor Ranking");
+    XLSX.utils.book_append_sheet(wb, doctorWS, "Doctor Annual Ranking");
+
+    // Doctor Monthly Ranking Sheet
+    const doctorMonthlyWS = XLSX.utils.json_to_sheet(doctorMonthlyStats.map((d, idx) => ({
+      'Rank': idx + 1,
+      'Doctor Name': d.name,
+      'Success (SC)': d.sc,
+      'Consult Only (CO)': d.co,
+      'Total': d.scCoTotal,
+      'Total Records': d.total,
+      'Conversion Rate (%)': parseFloat(d.conversionRate.toFixed(1))
+    })));
+    XLSX.utils.book_append_sheet(wb, doctorMonthlyWS, `Doctor Ranking ${months[selectedMonth]}`);
 
     // Save File
     const fileName = `Performance_${selectedYear}${selectedDoctor !== 'All' ? '_' + selectedDoctor : ''}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
-  const topDoctor = doctorStats[0];
+  const topDoctor = useMemo(() => {
+    return doctorStats.find(doc => !['dr ratna', 'dr hari'].includes(doc.name.toLowerCase()));
+  }, [doctorStats]);
 
   return (
     <div className="space-y-6">
@@ -251,7 +294,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-card overflow-hidden">
           <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-            <h3 className="font-bold text-slate-800">Doctor Annual Ranking</h3>
+            <h3 className="font-bold text-slate-800">Doctor Annual Ranking ({selectedYear})</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -265,31 +308,102 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {doctorStats.map((doc, idx) => (
-                  <tr key={doc.name} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-300 w-4">{idx + 1}</span>
-                        <span className="text-sm font-medium text-slate-700">{doc.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc}</td>
-                    <td className="px-4 py-3 text-center text-sm text-clinic-blue font-bold">{doc.co}</td>
-                    <td className="px-4 py-3 text-center text-sm text-slate-600 font-bold">{doc.scCoTotal}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                        {doc.conversionRate.toFixed(1)}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {(() => {
+                  let rank = 0;
+                  return doctorStats.map((doc) => {
+                    const isExcluded = ['dr ratna', 'dr hari'].includes(doc.name.toLowerCase());
+                    if (!isExcluded) rank++;
+                    return (
+                      <tr key={doc.name} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-300 w-4">{isExcluded ? '-' : rank}</span>
+                            <span className="text-sm font-medium text-slate-700">{doc.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc}</td>
+                        <td className="px-4 py-3 text-center text-sm text-clinic-blue font-bold">{doc.co}</td>
+                        <td className="px-4 py-3 text-center text-sm text-slate-600 font-bold">{doc.scCoTotal}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                            {doc.conversionRate.toFixed(1)}%
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()}
               </tbody>
             </table>
           </div>
         </div>
 
-        <div className="glass-card p-6">
-          <h3 className="font-bold text-slate-800 mb-4">Monthly Conversion Rate</h3>
+        <div className="glass-card overflow-hidden">
+          <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <h3 className="font-bold text-slate-800">Doctor Monthly Ranking</h3>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              className="text-xs px-2 py-1 bg-white border border-slate-200 rounded-lg outline-none focus:border-clinic-teal"
+            >
+              {months.map((m, idx) => (
+                <option key={m} value={idx}>{m}</option>
+              ))}
+            </select>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Doctor</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">SC</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CO</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Total</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Rate</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {doctorMonthlyStats.length > 0 ? (
+                  (() => {
+                    let rank = 0;
+                    return doctorMonthlyStats.map((doc) => {
+                      const isExcluded = ['dr ratna', 'dr hari'].includes(doc.name.toLowerCase());
+                      if (!isExcluded) rank++;
+                      return (
+                        <tr key={doc.name} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-300 w-4">{isExcluded ? '-' : rank}</span>
+                              <span className="text-sm font-medium text-slate-700">{doc.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc}</td>
+                          <td className="px-4 py-3 text-center text-sm text-clinic-blue font-bold">{doc.co}</td>
+                          <td className="px-4 py-3 text-center text-sm text-slate-600 font-bold">{doc.scCoTotal}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                              {doc.conversionRate.toFixed(1)}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-slate-400 text-sm italic">
+                      No records found for {months[selectedMonth]} {selectedYear}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-card p-6">
+        <h3 className="font-bold text-slate-800 mb-4">Monthly Conversion Rate Trend</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={annualData}>
@@ -306,6 +420,5 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };

@@ -8,7 +8,6 @@ import {
 } from './types';
 import { StatsCards } from './components/StatsCards';
 import { Charts } from './components/Charts';
-import { PerformanceTable } from './components/PerformanceTable';
 import { OutcomeForm } from './components/OutcomeForm';
 import { Filters } from './components/Filters';
 import { FollowUpList } from './components/FollowUpList';
@@ -22,8 +21,10 @@ import {
   Table as TableIcon,
   PlusCircle,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  Download
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from './services/supabase';
 import { format } from 'date-fns';
@@ -448,7 +449,8 @@ export default function App() {
   const performanceData = useMemo(() => {
     const activeDoctorNames = doctors.filter(d => d.isActive).map(d => d.name);
     const doctorsWithRecords = Array.from(new Set(outcomes.map(o => o.doctor).filter(Boolean))) as string[];
-    const allRelevantDoctors = Array.from(new Set([...activeDoctorNames, ...doctorsWithRecords]));
+    const allRelevantDoctors = Array.from(new Set([...activeDoctorNames, ...doctorsWithRecords]))
+      .filter(name => !['dr ratna', 'dr hari'].includes(name.toLowerCase()));
 
     return allRelevantDoctors.map((docName) => {
       const docOutcomes = filteredOutcomes.filter((o) => o.doctor === docName);
@@ -468,6 +470,56 @@ export default function App() {
       };
     }).sort((a, b) => b.conversionRate - a.conversionRate);
   }, [filteredOutcomes, doctors, outcomes]);
+
+  const handleExportCSV = () => {
+    // 1. Summary Data
+    const summaryData = performanceData.map(d => ({
+      'Doctor': d.doctor,
+      'Success (SC)': d.sc,
+      'Consult Only (CO)': d.co,
+      'No Show (NS)': d.ns,
+      'Total': d.total,
+      'Conversion Rate (%)': d.conversionRate.toFixed(1)
+    }));
+
+    // 2. Detailed Records Data
+    // Exclude Dr Ratna and Dr Hari from the detailed records as well, to be consistent with performance measurement
+    const detailedData = filteredOutcomes
+      .filter(o => !['dr ratna', 'dr hari'].includes(o.doctor?.toLowerCase() || ''))
+      .map(o => ({
+        'Date': o.date,
+        'Patient Name': o.patientName,
+        'Contact': o.contactNumber || '-',
+        'Doctor': o.doctor || '-',
+        'Status': o.status,
+        'Braces Type': o.bracesType || '-',
+        'Notes': o.notes || '-',
+        'Follow Up Needed': o.needsFollowUp ? 'Yes' : 'No',
+        'Followed Up': o.followedUp ? 'Yes' : 'No'
+      }));
+
+    const wb = XLSX.utils.book_new();
+    
+    // Create a worksheet that combines both
+    const ws = XLSX.utils.json_to_sheet(summaryData);
+    
+    // Add a header for the detailed records section after a blank row
+    const summaryRows = summaryData.length + 2; // +1 for header, +1 for blank row
+    XLSX.utils.sheet_add_aoa(ws, [['']], { origin: `A${summaryRows}` });
+    XLSX.utils.sheet_add_aoa(ws, [['DETAILED OUTCOME RECORDS']], { origin: `A${summaryRows + 1}` });
+    XLSX.utils.sheet_add_json(ws, detailedData, { origin: `A${summaryRows + 2}`, skipHeader: false });
+
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Comprehensive_Performance_Report_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const stats = useMemo(() => {
     const total = filteredOutcomes.length;
@@ -602,6 +654,13 @@ export default function App() {
                   <h1 className="text-2xl font-bold text-slate-900">Performance Dashboard</h1>
                   <p className="text-slate-500">Track and analyze clinic outcomes</p>
                 </div>
+                <button
+                  onClick={handleExportCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-clinic-teal text-white rounded-lg hover:bg-clinic-teal/90 transition-all shadow-sm font-medium text-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
               </div>
 
               <Filters 
@@ -630,7 +689,6 @@ export default function App() {
                     overallStatusData={overallStatusData} 
                     monthlyTrendData={monthlyTrendData}
                   />
-                  <PerformanceTable data={performanceData} />
                   <BracesSummary outcomes={filteredOutcomes} />
                 </div>
                 <div className="space-y-8">
