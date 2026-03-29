@@ -32,6 +32,7 @@ import { Logo } from './components/Logo';
 import { DoctorManagement } from './components/DoctorManagement';
 import { OutcomeTable } from './components/OutcomeTable';
 import { SuccessModal } from './components/SuccessModal';
+import { ConfirmationModal } from './components/ConfirmationModal';
 import { PatientDetailsModal } from './components/PatientDetailsModal';
 import { AnnualPerformance } from './components/AnnualPerformance';
 import { BracesSummary } from './components/BracesSummary';
@@ -51,6 +52,11 @@ export default function App() {
   const [successMessage, setSuccessMessage] = useState('');
   const [successTitle, setSuccessTitle] = useState('Success!');
   const [lastCreatedId, setLastCreatedId] = useState<string | null>(null);
+
+  // Confirmation Modal State
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationDetails, setConfirmationDetails] = useState({ title: '', message: '' });
+  const [pendingAction, setPendingAction] = useState<(() => Promise<void>) | null>(null);
 
   // Details Modal State
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -128,7 +134,27 @@ export default function App() {
   };
 
   // Outcome CRUD
-  const handleAddOutcome = async (newOutcome: Omit<PatientOutcome, 'id' | 'createdAt'>) => {
+  const isDuplicate = async (patientName: string, date: string, excludeId?: string) => {
+    // We fetch all records for the same date to perform a robust case-insensitive comparison in JS
+    const { data, error } = await supabase
+      .from('patient_outcomes')
+      .select('id, patient_name')
+      .eq('date', date);
+    
+    if (error) {
+      console.error('Error checking for duplicates:', error);
+      return false;
+    }
+
+    const normalizedNewName = patientName.trim().toLowerCase();
+    
+    return data?.some(record => {
+      if (excludeId && record.id === excludeId) return false;
+      return record.patient_name.trim().toLowerCase() === normalizedNewName;
+    }) || false;
+  };
+
+  const executeAddOutcome = async (newOutcome: Omit<PatientOutcome, 'id' | 'createdAt'>) => {
     try {
       const { data, error } = await supabase
         .from('patient_outcomes')
@@ -179,7 +205,27 @@ export default function App() {
     }
   };
 
-  const handleUpdateOutcome = async (id: string, updates: Partial<PatientOutcome>) => {
+  const handleAddOutcome = async (newOutcome: Omit<PatientOutcome, 'id' | 'createdAt'>) => {
+    // Check for duplicates
+    const duplicateExists = await isDuplicate(
+      newOutcome.patientName, 
+      newOutcome.date, 
+      undefined
+    );
+    if (duplicateExists) {
+      setConfirmationDetails({
+        title: 'Duplicate Record Detected',
+        message: `A record for "${newOutcome.patientName}" on ${format(new Date(newOutcome.date), 'MMM d, yyyy')} already exists. Are you sure you want to add this as a separate record?`
+      });
+      setPendingAction(() => () => executeAddOutcome(newOutcome));
+      setShowConfirmation(true);
+      return;
+    }
+
+    await executeAddOutcome(newOutcome);
+  };
+
+  const executeUpdateOutcome = async (id: string, updates: Partial<PatientOutcome>) => {
     try {
       const dbUpdates: any = {};
       if (updates.patientName) dbUpdates.patient_name = updates.patientName;
@@ -226,6 +272,30 @@ export default function App() {
       console.error('Error updating outcome:', error);
       alert(`Failed to update record: ${error.message || 'Unknown error'}`);
     }
+  };
+
+  const handleUpdateOutcome = async (id: string, updates: Partial<PatientOutcome>) => {
+    // If updating name, date, or doctor, check for duplicates
+    if (updates.patientName || updates.date || updates.doctor || updates.contactNumber) {
+      const currentOutcome = outcomes.find(o => o.id === id);
+      if (currentOutcome) {
+        const name = updates.patientName || currentOutcome.patientName;
+        const date = updates.date || currentOutcome.date;
+        
+        const duplicateExists = await isDuplicate(name, date, id);
+        if (duplicateExists) {
+          setConfirmationDetails({
+            title: 'Potential Duplicate Update',
+            message: `Another record for "${name}" on ${format(new Date(date), 'MMM d, yyyy')} already exists. Are you sure you want to save these changes?`
+          });
+          setPendingAction(() => () => executeUpdateOutcome(id, updates));
+          setShowConfirmation(true);
+          return;
+        }
+      }
+    }
+
+    await executeUpdateOutcome(id, updates);
   };
 
   const handleDeleteOutcome = async (id: string) => {
@@ -686,6 +756,21 @@ export default function App() {
         title={successTitle}
         message={successMessage}
         onUndo={lastCreatedId ? handleUndo : undefined}
+      />
+
+      <ConfirmationModal
+        isOpen={showConfirmation}
+        onClose={() => {
+          setShowConfirmation(false);
+          setPendingAction(null);
+        }}
+        onConfirm={() => {
+          if (pendingAction) pendingAction();
+        }}
+        title={confirmationDetails.title}
+        message={confirmationDetails.message}
+        confirmLabel="Yes, Save Anyway"
+        cancelLabel="No, Cancel"
       />
 
       <PatientDetailsModal
