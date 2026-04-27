@@ -475,15 +475,18 @@ export default function App() {
 
   const handleExportCSV = () => {
     // 1. Summary Data
-    const summaryData = performanceData.map(d => ({
-      'Doctor': d.doctor,
-      'Success (SC)': d.sc,
-      'Consult Only (CO)': d.co,
-      'Continue Case (CC)': d.cc,
-      'No Show (NS)': d.ns,
-      'Total': d.total,
-      'Conversion Rate (%)': d.conversionRate.toFixed(1)
-    }));
+    // Filter to only include doctors that have data matching the current filters
+    const summaryData = performanceData
+      .filter(d => d.total > 0)
+      .map(d => ({
+        'Doctor': d.doctor,
+        'Success (SC)': d.sc,
+        'Consult Only (CO)': d.co,
+        'Continue Case (CC)': d.cc,
+        'No Show (NS)': d.ns,
+        'Total': d.total,
+        'Conversion Rate (%)': d.conversionRate.toFixed(1)
+      }));
 
     // 2. Detailed Records Data
     // Exclude Dr Ratna and Dr Hari from the detailed records as well, to be consistent with performance measurement

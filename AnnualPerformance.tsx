@@ -185,6 +185,47 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
 
   return (
     <div className="space-y-6">
+      <div className="glass-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">Performance Snapshot</h2>
+          <p className="text-sm text-slate-500">Filter and analyze records for {selectedYear}</p>
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-slate-400" />
+            <select
+              value={selectedYear}
+              onChange={(e) => onYearChange(parseInt(e.target.value))}
+              className="text-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[100px]"
+            >
+              {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-slate-400" />
+            <select
+              value={selectedDoctor}
+              onChange={(e) => setSelectedDoctor(e.target.value)}
+              className="text-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[160px]"
+            >
+              <option value="All">All Doctors</option>
+              {doctors.map(doc => (
+                <option key={doc.id} value={doc.name}>{doc.name}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={handleDownloadExcel}
+            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-sm font-bold hover:bg-emerald-100 transition-colors ml-auto"
+          >
+            <Download className="w-4 h-4" />
+            Export Excel
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="glass-card p-4 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-clinic-teal/10 flex items-center justify-center text-clinic-teal">
@@ -229,45 +270,9 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
       </div>
 
       <div className="glass-card p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h3 className="text-lg font-bold text-slate-800">Annual Performance Trend</h3>
-            <p className="text-sm text-slate-500">Monthly breakdown of outcomes for {selectedYear}</p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={handleDownloadExcel}
-              className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-sm font-bold hover:bg-emerald-100 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Export Excel
-            </button>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-slate-400" />
-              <select
-                value={selectedYear}
-                onChange={(e) => onYearChange(parseInt(e.target.value))}
-                className="text-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[100px]"
-              >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-slate-400" />
-              <select
-                value={selectedDoctor}
-                onChange={(e) => setSelectedDoctor(e.target.value)}
-                className="text-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-clinic-teal focus:ring-1 focus:ring-clinic-teal/20 min-w-[160px]"
-              >
-                <option value="All">All Doctors</option>
-                {doctors.map(doc => (
-                  <option key={doc.id} value={doc.name}>{doc.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+        <div className="mb-6">
+          <h3 className="text-lg font-bold text-slate-800">Annual Performance Trend</h3>
+          <p className="text-sm text-slate-500">Monthly breakdown of outcomes for {selectedDoctor === 'All' ? 'Full Staff' : selectedDoctor}</p>
         </div>
 
         <div className="h-[400px]">

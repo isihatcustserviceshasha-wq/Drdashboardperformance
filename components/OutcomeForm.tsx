@@ -22,6 +22,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [doctor, setDoctor] = useState<DoctorName>('');
   const [status, setStatus] = useState<OutcomeStatus>(OutcomeStatus.SC);
+  const [previousStatus, setPreviousStatus] = useState<OutcomeStatus>(OutcomeStatus.SC);
   const [bracesType, setBracesType] = useState<BracesType | ''>('');
   const [notes, setNotes] = useState('');
   const [needsFollowUp, setNeedsFollowUp] = useState(false);
@@ -63,6 +64,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
       setDoctor('');
     }
     setStatus(OutcomeStatus.SC);
+    setPreviousStatus(OutcomeStatus.SC);
     setBracesType('');
     setNotes('');
     setNeedsFollowUp(false);
@@ -126,6 +128,26 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
         )}
       </div>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+        <div className="md:col-span-2 lg:col-span-6 flex items-center gap-3 bg-purple-50 p-3 rounded-lg border border-purple-100 mb-2">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={status === OutcomeStatus.CC}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setPreviousStatus(status);
+                  setStatus(OutcomeStatus.CC);
+                } else {
+                  setStatus(previousStatus === OutcomeStatus.CC ? OutcomeStatus.SC : previousStatus);
+                }
+              }}
+              className="w-4 h-4 text-purple-600 border-purple-300 rounded focus:ring-purple-500 cursor-pointer"
+            />
+            <span className="text-sm font-bold text-purple-700 uppercase tracking-wide">Continue Case (Existing Plan)</span>
+          </label>
+          <span className="text-[10px] text-purple-400 font-medium italic">Mark this if the patient is continuing an existing braces treatment that was started at another clinic.</span>
+        </div>
+
         <div className="space-y-1">
           <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Patient Name</label>
           <input
@@ -161,16 +183,18 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Status</label>
+          <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Status {status === OutcomeStatus.CC && <span className="text-[10px] text-purple-500 normal-case font-bold">(Continue Case)</span>}
+          </label>
           <select
-            value={status}
+            value={status === OutcomeStatus.CC ? OutcomeStatus.SC : status}
+            disabled={status === OutcomeStatus.CC}
             onChange={(e) => setStatus(e.target.value as OutcomeStatus)}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-teal/20 focus:border-clinic-teal outline-none transition-all"
+            className={`w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-teal/20 focus:border-clinic-teal outline-none transition-all ${status === OutcomeStatus.CC ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
           >
             <option value={OutcomeStatus.SC}>Success</option>
             <option value={OutcomeStatus.CO}>Consult Only</option>
             <option value={OutcomeStatus.NS}>No Show</option>
-            <option value={OutcomeStatus.CC}>Continue Case</option>
           </select>
         </div>
 
