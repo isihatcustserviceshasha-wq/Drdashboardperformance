@@ -456,14 +456,16 @@ export default function App() {
       const docOutcomes = filteredOutcomes.filter((o) => o.doctor === docName);
       const sc = docOutcomes.filter((o) => o.status === OutcomeStatus.SC).length;
       const co = docOutcomes.filter((o) => o.status === OutcomeStatus.CO).length;
+      const cc = docOutcomes.filter((o) => o.status === OutcomeStatus.CC).length;
       const ns = docOutcomes.filter((o) => o.status === OutcomeStatus.NS).length;
       const total = docOutcomes.length;
-      const conversionRate = (sc + co) > 0 ? (sc / (sc + co)) * 100 : 0;
+      const conversionRate = (sc + co + cc) > 0 ? ((sc + cc) / (sc + co + cc)) * 100 : 0;
 
       return {
         doctor: docName,
         sc,
         co,
+        cc,
         ns,
         total,
         conversionRate,
@@ -477,6 +479,7 @@ export default function App() {
       'Doctor': d.doctor,
       'Success (SC)': d.sc,
       'Consult Only (CO)': d.co,
+      'Continue Case (CC)': d.cc,
       'No Show (NS)': d.ns,
       'Total': d.total,
       'Conversion Rate (%)': d.conversionRate.toFixed(1)
@@ -525,14 +528,16 @@ export default function App() {
     const total = filteredOutcomes.length;
     const sc = filteredOutcomes.filter((o) => o.status === OutcomeStatus.SC).length;
     const co = filteredOutcomes.filter((o) => o.status === OutcomeStatus.CO).length;
+    const cc = filteredOutcomes.filter((o) => o.status === OutcomeStatus.CC).length;
     const ns = filteredOutcomes.filter((o) => o.status === OutcomeStatus.NS).length;
-    return { total, sc, co, ns };
+    return { total, sc, co, cc, ns };
   }, [filteredOutcomes]);
 
   const overallStatusData = useMemo(() => [
     { name: 'Success', value: stats.sc },
     { name: 'Consult Only', value: stats.co },
     { name: 'No Show', value: stats.ns },
+    { name: 'Continue Case', value: stats.cc },
   ], [stats]);
 
   const monthlyTrendData = useMemo(() => {
@@ -549,6 +554,7 @@ export default function App() {
         month,
         sc: monthOutcomes.filter(o => o.status === OutcomeStatus.SC).length,
         co: monthOutcomes.filter(o => o.status === OutcomeStatus.CO).length,
+        cc: monthOutcomes.filter(o => o.status === OutcomeStatus.CC).length,
         ns: monthOutcomes.filter(o => o.status === OutcomeStatus.NS).length,
       };
     });
@@ -566,6 +572,7 @@ export default function App() {
   const handleStatClick = (label: string) => {
     setDetailsTitle(label);
     if (label === 'Total Success') setDetailsStatus(OutcomeStatus.SC);
+    else if (label === 'Continue Case') setDetailsStatus(OutcomeStatus.CC);
     else if (label === 'Total Consult Only') setDetailsStatus(OutcomeStatus.CO);
     else if (label === 'Total No Show') setDetailsStatus(OutcomeStatus.NS);
     else setDetailsStatus('All');

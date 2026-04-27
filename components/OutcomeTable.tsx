@@ -19,6 +19,8 @@ export const OutcomeTable: React.FC<OutcomeTableProps> = ({ outcomes, onEdit, on
         return 'bg-blue-100 text-blue-800';
       case OutcomeStatus.NS:
         return 'bg-slate-100 text-slate-800';
+      case OutcomeStatus.CC:
+        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-slate-100 text-slate-800';
     }
@@ -69,7 +71,7 @@ export const OutcomeTable: React.FC<OutcomeTableProps> = ({ outcomes, onEdit, on
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  {outcome.status === OutcomeStatus.SC && outcome.bracesType && (
+                  {(outcome.status === OutcomeStatus.SC || outcome.status === OutcomeStatus.CC) && outcome.bracesType && (
                     <span className="text-xs font-medium text-clinic-teal bg-teal-50 px-2 py-1 rounded border border-teal-100">
                       {outcome.bracesType}
                     </span>

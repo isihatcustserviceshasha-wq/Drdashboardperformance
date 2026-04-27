@@ -4,6 +4,7 @@ export enum OutcomeStatus {
   SC = "Success",
   CO = "Consult Only",
   NS = "No Show",
+  CC = "Continue Case",
 }
 
 export enum BracesType {
@@ -42,6 +43,7 @@ export interface DoctorPerformance {
   doctor: DoctorName;
   sc: number;
   co: number;
+  cc: number;
   ns: number;
   total: number;
   conversionRate: number;

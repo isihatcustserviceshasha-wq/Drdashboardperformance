@@ -13,7 +13,7 @@ import {
   Bar
 } from 'recharts';
 import { format } from 'date-fns';
-import { User, TrendingUp, Award, Calendar, Download } from 'lucide-react';
+import { User, TrendingUp, Award, Calendar, Download, ClipboardList } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface AnnualPerformanceProps {
@@ -27,6 +27,7 @@ const COLORS = {
   SC: '#00A9A5',
   CO: '#2B78B7',
   NS: '#4D4D4D',
+  CC: '#9333ea',
 };
 
 export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, doctors, selectedYear, onYearChange }) => {
@@ -57,14 +58,16 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
 
       const sc = monthOutcomes.filter(o => o.status === OutcomeStatus.SC).length;
       const co = monthOutcomes.filter(o => o.status === OutcomeStatus.CO).length;
+      const cc = monthOutcomes.filter(o => o.status === OutcomeStatus.CC).length;
       const ns = monthOutcomes.filter(o => o.status === OutcomeStatus.NS).length;
       const total = monthOutcomes.length;
-      const conversionRate = (sc + co) > 0 ? (sc / (sc + co)) * 100 : 0;
+      const conversionRate = (sc + co + cc) > 0 ? ((sc + cc) / (sc + co + cc)) * 100 : 0;
 
       return {
         month,
         sc,
         co,
+        cc,
         ns,
         total,
         conversionRate: parseFloat(conversionRate.toFixed(1))
@@ -81,14 +84,16 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
 
       const sc = docOutcomes.filter(o => o.status === OutcomeStatus.SC).length;
       const co = docOutcomes.filter(o => o.status === OutcomeStatus.CO).length;
+      const cc = docOutcomes.filter(o => o.status === OutcomeStatus.CC).length;
       const total = docOutcomes.length;
-      const scCoTotal = sc + co;
-      const conversionRate = scCoTotal > 0 ? (sc / scCoTotal) * 100 : 0;
+      const scCoTotal = sc + co + cc;
+      const conversionRate = scCoTotal > 0 ? ((sc + cc) / scCoTotal) * 100 : 0;
 
       return {
         name: doc.name,
         sc,
         co,
+        cc,
         scCoTotal,
         total,
         conversionRate
@@ -109,14 +114,16 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
 
       const sc = docOutcomes.filter(o => o.status === OutcomeStatus.SC).length;
       const co = docOutcomes.filter(o => o.status === OutcomeStatus.CO).length;
+      const cc = docOutcomes.filter(o => o.status === OutcomeStatus.CC).length;
       const total = docOutcomes.length;
-      const scCoTotal = sc + co;
-      const conversionRate = scCoTotal > 0 ? (sc / scCoTotal) * 100 : 0;
+      const scCoTotal = sc + co + cc;
+      const conversionRate = scCoTotal > 0 ? ((sc + cc) / scCoTotal) * 100 : 0;
 
       return {
         name: doc.name,
         sc,
         co,
+        cc,
         scCoTotal,
         total,
         conversionRate
@@ -134,6 +141,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
       'Month': d.month,
       'Success (SC)': d.sc,
       'Consult Only (CO)': d.co,
+      'Continue Case (CC)': d.cc,
       'No Show (NS)': d.ns,
       'Total': d.total,
       'Conversion Rate (%)': d.conversionRate
@@ -146,6 +154,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
       'Doctor Name': d.name,
       'Success (SC)': d.sc,
       'Consult Only (CO)': d.co,
+      'Continue Case (CC)': d.cc,
       'Total': d.scCoTotal,
       'Total Records': d.total,
       'Conversion Rate (%)': parseFloat(d.conversionRate.toFixed(1))
@@ -158,6 +167,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
       'Doctor Name': d.name,
       'Success (SC)': d.sc,
       'Consult Only (CO)': d.co,
+      'Continue Case (CC)': d.cc,
       'Total': d.scCoTotal,
       'Total Records': d.total,
       'Conversion Rate (%)': parseFloat(d.conversionRate.toFixed(1))
@@ -175,7 +185,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="glass-card p-4 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-clinic-teal/10 flex items-center justify-center text-clinic-teal">
             <Calendar className="w-6 h-6" />
@@ -193,6 +203,17 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Annual Avg Conversion</p>
             <p className="text-xl font-bold text-slate-800">
               {(annualData.reduce((acc, curr) => acc + curr.conversionRate, 0) / 12).toFixed(1)}%
+            </p>
+          </div>
+        </div>
+        <div className="glass-card p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+            <ClipboardList className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Annual Continue Cases</p>
+            <p className="text-xl font-bold text-slate-800">
+              {annualData.reduce((acc, curr) => acc + curr.cc, 0)}
             </p>
           </div>
         </div>
@@ -279,6 +300,14 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
               />
               <Line 
                 type="monotone" 
+                dataKey="cc" 
+                name="Continue Case" 
+                stroke={COLORS.CC} 
+                strokeWidth={2} 
+                dot={{ r: 4, fill: COLORS.CC, strokeWidth: 1, stroke: '#fff' }}
+              />
+              <Line 
+                type="monotone" 
                 dataKey="conversionRate" 
                 name="Conv. Rate %" 
                 stroke="#F59E0B" 
@@ -303,6 +332,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Doctor</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">SC</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CO</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CC</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Total</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Rate</th>
                 </tr>
@@ -323,6 +353,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                         </td>
                         <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc}</td>
                         <td className="px-4 py-3 text-center text-sm text-clinic-blue font-bold">{doc.co}</td>
+                        <td className="px-4 py-3 text-center text-sm text-purple-600 font-bold">{doc.cc}</td>
                         <td className="px-4 py-3 text-center text-sm text-slate-600 font-bold">{doc.scCoTotal}</td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
@@ -358,6 +389,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Doctor</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">SC</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CO</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CC</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Total</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Rate</th>
                 </tr>
@@ -379,6 +411,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                           </td>
                           <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc}</td>
                           <td className="px-4 py-3 text-center text-sm text-clinic-blue font-bold">{doc.co}</td>
+                          <td className="px-4 py-3 text-center text-sm text-purple-600 font-bold">{doc.cc}</td>
                           <td className="px-4 py-3 text-center text-sm text-slate-600 font-bold">{doc.scCoTotal}</td>
                           <td className="px-4 py-3 text-center">
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">

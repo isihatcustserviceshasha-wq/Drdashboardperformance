@@ -89,7 +89,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
       date,
       doctor: status === OutcomeStatus.NS ? undefined : doctor,
       status,
-      bracesType: status === OutcomeStatus.SC ? (bracesType as BracesType) : undefined,
+      bracesType: (status === OutcomeStatus.SC || status === OutcomeStatus.CC) ? (bracesType as BracesType) : undefined,
       notes,
       needsFollowUp: (status === OutcomeStatus.CO || status === OutcomeStatus.NS) ? needsFollowUp : false,
     };
@@ -170,6 +170,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
             <option value={OutcomeStatus.SC}>Success</option>
             <option value={OutcomeStatus.CO}>Consult Only</option>
             <option value={OutcomeStatus.NS}>No Show</option>
+            <option value={OutcomeStatus.CC}>Continue Case</option>
           </select>
         </div>
 
@@ -190,7 +191,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
           </select>
         </div>
 
-        {status === OutcomeStatus.SC && (
+        {(status === OutcomeStatus.SC || status === OutcomeStatus.CC) && (
           <div className="space-y-1">
             <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Braces Type (Optional)</label>
             <select
@@ -209,7 +210,7 @@ export const OutcomeForm: React.FC<OutcomeFormProps> = ({
         <button
           type="submit"
           disabled={status !== OutcomeStatus.NS && activeDoctors.length === 0}
-          className={`bg-clinic-teal hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${status === OutcomeStatus.SC ? '' : 'lg:col-start-6'}`}
+          className={`bg-clinic-teal hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${(status === OutcomeStatus.SC || status === OutcomeStatus.CC) ? '' : 'lg:col-start-6'}`}
         >
           {editingOutcome ? 'Update Record' : 'Add Record'}
         </button>

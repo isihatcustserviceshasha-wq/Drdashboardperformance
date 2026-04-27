@@ -17,6 +17,7 @@ export const PerformanceTable: React.FC<PerformanceTableProps> = ({ data }) => {
             <tr className="bg-slate-50 border-y border-slate-100">
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Doctor</th>
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Success</th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Continue Case</th>
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Consult Only</th>
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">No Show</th>
               <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Total</th>
@@ -28,6 +29,7 @@ export const PerformanceTable: React.FC<PerformanceTableProps> = ({ data }) => {
               <tr key={row.doctor} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4 font-medium text-slate-900">{row.doctor}</td>
                 <td className="px-6 py-4 text-center text-clinic-teal font-medium">{row.sc}</td>
+                <td className="px-6 py-4 text-center text-purple-600 font-medium">{row.cc}</td>
                 <td className="px-6 py-4 text-center text-clinic-blue font-medium">{row.co}</td>
                 <td className="px-6 py-4 text-center text-clinic-gray font-medium">{row.ns}</td>
                 <td className="px-6 py-4 text-center text-slate-600">{row.total}</td>

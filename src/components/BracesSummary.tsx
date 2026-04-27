@@ -7,15 +7,15 @@ interface BracesSummaryProps {
 }
 
 export const BracesSummary: React.FC<BracesSummaryProps> = ({ outcomes }) => {
-  const successOutcomes = outcomes.filter(o => o.status === OutcomeStatus.SC);
+  const activeOutcomes = outcomes.filter(o => o.status === OutcomeStatus.SC || o.status === OutcomeStatus.CC);
   
   const bracesCounts = Object.values(BracesType).reduce((acc, type) => {
-    acc[type] = successOutcomes.filter(o => o.bracesType === type).length;
+    acc[type] = activeOutcomes.filter(o => o.bracesType === type).length;
     return acc;
   }, {} as Record<string, number>);
 
-  const pendingCount = successOutcomes.filter(o => !o.bracesType).length;
-  const totalSuccess = successOutcomes.length;
+  const pendingCount = activeOutcomes.filter(o => !o.bracesType).length;
+  const totalActive = activeOutcomes.length;
 
   return (
     <div className="glass-card p-6">
@@ -26,14 +26,14 @@ export const BracesSummary: React.FC<BracesSummaryProps> = ({ outcomes }) => {
         </h2>
         <div className="bg-clinic-teal/10 text-clinic-teal px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
           <Activity className="w-4 h-4" />
-          Total Success: {totalSuccess}
+          Total Cases: {totalActive}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.values(BracesType).map((type) => {
           const count = bracesCounts[type] || 0;
-          const percentage = totalSuccess > 0 ? Math.round((count / totalSuccess) * 100) : 0;
+          const percentage = totalActive > 0 ? Math.round((count / totalActive) * 100) : 0;
           
           return (
             <div key={type} className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-clinic-teal/30 transition-all group">
@@ -50,7 +50,7 @@ export const BracesSummary: React.FC<BracesSummaryProps> = ({ outcomes }) => {
                 />
               </div>
               <div className="flex justify-end mt-1">
-                <span className="text-[10px] font-medium text-slate-400">{percentage}% of total success</span>
+                <span className="text-[10px] font-medium text-slate-400">{percentage}% of total cases</span>
               </div>
             </div>
           );
@@ -67,7 +67,7 @@ export const BracesSummary: React.FC<BracesSummaryProps> = ({ outcomes }) => {
             <div className="w-full bg-rose-200 h-1.5 rounded-full overflow-hidden">
               <div 
                 className="bg-rose-500 h-full transition-all duration-500 ease-out"
-                style={{ width: `${Math.round((pendingCount / totalSuccess) * 100)}%` }}
+                style={{ width: `${Math.round((pendingCount / totalActive) * 100)}%` }}
               />
             </div>
             <div className="flex justify-end mt-1">

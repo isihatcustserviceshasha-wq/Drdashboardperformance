@@ -107,6 +107,7 @@ export const Filters: React.FC<FiltersProps> = ({
               <option value="Success">Success</option>
               <option value="Consult Only">Consult Only</option>
               <option value="No Show">No Show</option>
+              <option value="Continue Case">Continue Case</option>
             </select>
           </div>
         </div>

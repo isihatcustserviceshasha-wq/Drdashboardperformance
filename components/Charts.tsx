@@ -26,6 +26,7 @@ const COLORS = {
   SC: '#00A9A5', // clinic-teal
   CO: '#2B78B7', // clinic-blue
   NS: '#4D4D4D', // clinic-gray
+  CC: '#9333ea', // purple-600
 };
 
 export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusData, monthlyTrendData }) => {
@@ -33,7 +34,7 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-card p-6 h-[400px]">
-          <h3 className="text-md font-semibold text-slate-800 mb-4">Success vs Consult Only per Doctor</h3>
+          <h3 className="text-md font-semibold text-slate-800 mb-4">Outcomes per Doctor</h3>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={performanceData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -45,6 +46,7 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
               />
               <Legend verticalAlign="top" align="right" iconType="circle" />
               <Bar dataKey="sc" name="Success" fill={COLORS.SC} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="cc" name="Continue Case" fill={COLORS.CC} radius={[4, 4, 0, 0]} />
               <Bar dataKey="co" name="Consult Only" fill={COLORS.CO} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -65,7 +67,7 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
                   dataKey="value"
                 >
                   {overallStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % 3]} />
+                    <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />
                   ))}
                 </Pie>
                 <Tooltip 
@@ -91,13 +93,14 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
             />
             <Legend verticalAlign="top" align="right" iconType="circle" />
             <Bar dataKey="sc" name="Success" fill={COLORS.SC} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="cc" name="Continue Case" fill={COLORS.CC} radius={[4, 4, 0, 0]} />
             <Bar dataKey="co" name="Consult Only" fill={COLORS.CO} radius={[4, 4, 0, 0]} />
             <Bar dataKey="ns" name="No Show" fill={COLORS.NS} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
       <div className="glass-card p-6 h-[400px]">
-        <h3 className="text-md font-semibold text-slate-800 mb-4">Monthly Success Trend</h3>
+        <h3 className="text-md font-semibold text-slate-800 mb-4">Monthly Trends</h3>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={monthlyTrendData}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -115,6 +118,14 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
               strokeWidth={3} 
               dot={{ r: 4, fill: COLORS.SC, strokeWidth: 2, stroke: '#fff' }}
               activeDot={{ r: 6, strokeWidth: 0 }}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="cc" 
+              name="Continue Case" 
+              stroke={COLORS.CC} 
+              strokeWidth={2} 
+              dot={{ r: 4, fill: COLORS.CC, strokeWidth: 1, stroke: '#fff' }}
             />
             <Line 
               type="monotone" 
