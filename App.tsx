@@ -537,10 +537,9 @@ export default function App() {
   }, [filteredOutcomes]);
 
   const overallStatusData = useMemo(() => [
-    { name: 'Success', value: stats.sc },
+    { name: 'Success', value: stats.sc + stats.cc },
     { name: 'Consult Only', value: stats.co },
     { name: 'No Show', value: stats.ns },
-    { name: 'Continue Case', value: stats.cc },
   ], [stats]);
 
   const monthlyTrendData = useMemo(() => {
@@ -574,8 +573,7 @@ export default function App() {
 
   const handleStatClick = (label: string) => {
     setDetailsTitle(label);
-    if (label === 'Total Success') setDetailsStatus(OutcomeStatus.SC);
-    else if (label === 'Continue Case') setDetailsStatus(OutcomeStatus.CC);
+    if (label === 'Total Success') setDetailsStatus('Success' as any);
     else if (label === 'Total Consult Only') setDetailsStatus(OutcomeStatus.CO);
     else if (label === 'Total No Show') setDetailsStatus(OutcomeStatus.NS);
     else setDetailsStatus('All');

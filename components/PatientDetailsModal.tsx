@@ -22,7 +22,9 @@ export const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({
 
   const filteredOutcomes = status === 'All' 
     ? outcomes 
-    : outcomes.filter(o => o.status === status);
+    : status === ('Success' as any)
+      ? outcomes.filter(o => o.status === OutcomeStatus.SC || o.status === OutcomeStatus.CC)
+      : outcomes.filter(o => o.status === status);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">

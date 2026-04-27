@@ -237,7 +237,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
           </div>
         </div>
         <div className="glass-card p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-clinic-blue/10 flex items-center justify-center text-clinic-blue">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
             <TrendingUp className="w-6 h-6" />
           </div>
           <div>
@@ -248,18 +248,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
           </div>
         </div>
         <div className="glass-card p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
-            <ClipboardList className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Annual Continue Cases</p>
-            <p className="text-xl font-bold text-slate-800">
-              {annualData.reduce((acc, curr) => acc + curr.cc, 0)}
-            </p>
-          </div>
-        </div>
-        <div className="glass-card p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+          <div className="w-12 h-12 rounded-full bg-clinic-teal/10 flex items-center justify-center text-clinic-teal">
             <Award className="w-6 h-6" />
           </div>
           <div>
@@ -287,7 +276,7 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
               <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ paddingBottom: '20px' }} />
               <Line 
                 type="monotone" 
-                dataKey="sc" 
+                dataKey={(d) => d.sc + d.cc} 
                 name="Success" 
                 stroke={COLORS.SC} 
                 strokeWidth={3} 
@@ -302,14 +291,6 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                 strokeWidth={2} 
                 strokeDasharray="5 5"
                 dot={{ r: 3, fill: COLORS.CO }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="cc" 
-                name="Continue Case" 
-                stroke={COLORS.CC} 
-                strokeWidth={2} 
-                dot={{ r: 4, fill: COLORS.CC, strokeWidth: 1, stroke: '#fff' }}
               />
               <Line 
                 type="monotone" 
@@ -335,9 +316,8 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Doctor</th>
-                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">SC</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Success</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CO</th>
-                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CC</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Total</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Rate</th>
                 </tr>
@@ -356,9 +336,8 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                             <span className="text-sm font-medium text-slate-700">{doc.name}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc}</td>
+                        <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc + doc.cc}</td>
                         <td className="px-4 py-3 text-center text-sm text-clinic-blue font-bold">{doc.co}</td>
-                        <td className="px-4 py-3 text-center text-sm text-purple-600 font-bold">{doc.cc}</td>
                         <td className="px-4 py-3 text-center text-sm text-slate-600 font-bold">{doc.scCoTotal}</td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
@@ -392,9 +371,8 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Doctor</th>
-                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">SC</th>
+                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Success</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CO</th>
-                  <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">CC</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Total</th>
                   <th className="px-4 py-2 text-xs font-bold text-slate-500 uppercase text-center">Rate</th>
                 </tr>
@@ -414,9 +392,8 @@ export const AnnualPerformance: React.FC<AnnualPerformanceProps> = ({ outcomes, 
                               <span className="text-sm font-medium text-slate-700">{doc.name}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc}</td>
+                          <td className="px-4 py-3 text-center text-sm text-emerald-600 font-bold">{doc.sc + doc.cc}</td>
                           <td className="px-4 py-3 text-center text-sm text-clinic-blue font-bold">{doc.co}</td>
-                          <td className="px-4 py-3 text-center text-sm text-purple-600 font-bold">{doc.cc}</td>
                           <td className="px-4 py-3 text-center text-sm text-slate-600 font-bold">{doc.scCoTotal}</td>
                           <td className="px-4 py-3 text-center">
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">

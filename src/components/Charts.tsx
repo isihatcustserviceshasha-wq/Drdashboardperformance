@@ -19,7 +19,7 @@ import { DoctorPerformance, OutcomeStatus } from '../types';
 interface ChartsProps {
   performanceData: DoctorPerformance[];
   overallStatusData: { name: string; value: number }[];
-  monthlyTrendData: { month: string; sc: number; co: number; ns: number }[];
+  monthlyTrendData: { month: string; sc: number; co: number; ns: number; cc: number }[];
 }
 
 const COLORS = {
@@ -45,8 +45,7 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
               <Legend verticalAlign="top" align="right" iconType="circle" />
-              <Bar dataKey="sc" name="Success" fill={COLORS.SC} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="cc" name="Continue Case" fill={COLORS.CC} radius={[4, 4, 0, 0]} />
+              <Bar dataKey={(d) => d.sc + d.cc} name="Success" fill={COLORS.SC} radius={[4, 4, 0, 0]} />
               <Bar dataKey="co" name="Consult Only" fill={COLORS.CO} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -67,7 +66,7 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
                   dataKey="value"
                 >
                   {overallStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />
+                    <Cell key={`cell-${index}`} fill={[COLORS.SC, COLORS.CO, COLORS.NS][index % 3]} />
                   ))}
                 </Pie>
                 <Tooltip 
@@ -92,8 +91,7 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
               contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
             />
             <Legend verticalAlign="top" align="right" iconType="circle" />
-            <Bar dataKey="sc" name="Success" fill={COLORS.SC} radius={[4, 4, 0, 0]} />
-            <Bar dataKey="cc" name="Continue Case" fill={COLORS.CC} radius={[4, 4, 0, 0]} />
+            <Bar dataKey={(d) => d.sc + d.cc} name="Success" fill={COLORS.SC} radius={[4, 4, 0, 0]} />
             <Bar dataKey="co" name="Consult Only" fill={COLORS.CO} radius={[4, 4, 0, 0]} />
             <Bar dataKey="ns" name="No Show" fill={COLORS.NS} radius={[4, 4, 0, 0]} />
           </BarChart>
@@ -112,20 +110,12 @@ export const Charts: React.FC<ChartsProps> = ({ performanceData, overallStatusDa
             <Legend verticalAlign="top" align="right" iconType="circle" />
             <Line 
               type="monotone" 
-              dataKey="sc" 
+              dataKey={(d) => d.sc + d.cc} 
               name="Success" 
               stroke={COLORS.SC} 
               strokeWidth={3} 
               dot={{ r: 4, fill: COLORS.SC, strokeWidth: 2, stroke: '#fff' }}
               activeDot={{ r: 6, strokeWidth: 0 }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="cc" 
-              name="Continue Case" 
-              stroke={COLORS.CC} 
-              strokeWidth={2} 
-              dot={{ r: 4, fill: COLORS.CC, strokeWidth: 1, stroke: '#fff' }}
             />
             <Line 
               type="monotone" 

@@ -13,14 +13,13 @@ interface StatsCardsProps {
 export const StatsCards: React.FC<StatsCardsProps> = ({ total, sc, co, cc, ns, onStatClick }) => {
   const stats = [
     { label: 'Total Cases', value: total, icon: Users, color: 'text-clinic-blue', bg: 'bg-blue-50' },
-    { label: 'Total Success', value: sc, icon: CheckCircle2, color: 'text-clinic-teal', bg: 'bg-teal-50' },
-    { label: 'Continue Case', value: cc, icon: ClipboardList, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Total Success', value: sc + cc, icon: CheckCircle2, color: 'text-clinic-teal', bg: 'bg-teal-50' },
     { label: 'Total Consult Only', value: co, icon: ClipboardList, color: 'text-clinic-blue', bg: 'bg-blue-50' },
     { label: 'Total No Show', value: ns, icon: UserX, color: 'text-clinic-gray', bg: 'bg-slate-100' },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <button 
           key={stat.label} 
