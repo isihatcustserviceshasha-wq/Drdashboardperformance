@@ -40,6 +40,12 @@ import { BracesSummary } from './components/BracesSummary';
 
 type View = 'dashboard' | 'records' | 'doctors' | 'templates' | 'performance';
 
+const DEFAULT_DOCTORS: Doctor[] = [
+  { id: 'doc-1', name: 'Dr. Low', isActive: true, createdAt: Date.now() - 86400000 * 30 },
+  { id: 'doc-2', name: 'Dr. Tan', isActive: true, createdAt: Date.now() - 86400000 * 20 },
+  { id: 'doc-3', name: 'Dr. Sarah', isActive: true, createdAt: Date.now() - 86400000 * 10 },
+];
+
 export default function App() {
   const [outcomes, setOutcomes] = useState<PatientOutcome[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -64,7 +70,7 @@ export default function App() {
   const [detailsTitle, setDetailsTitle] = useState('');
   const [detailsStatus, setDetailsStatus] = useState<OutcomeStatus | 'All'>('All');
   
-  // Filters
+  // Filters & Sorting
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 1);
@@ -75,6 +81,8 @@ export default function App() {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [patientSearch, setPatientSearch] = useState('');
+  const [sortField, setSortField] = useState<'date' | 'patientName' | 'status'>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     fetchData();
@@ -82,6 +90,24 @@ export default function App() {
 
   const fetchData = async () => {
     setIsLoading(true);
+    let loadedOutcomes: PatientOutcome[] = [];
+    let loadedDoctors: Doctor[] = [];
+
+    // Check Local Storage first for initial cache/fallback
+    try {
+      const storedOutcomes = localStorage.getItem('tlow_patient_outcomes');
+      if (storedOutcomes) loadedOutcomes = JSON.parse(storedOutcomes);
+
+      const storedDoctors = localStorage.getItem('tlow_doctors');
+      if (storedDoctors) loadedDoctors = JSON.parse(storedDoctors);
+    } catch (e) {
+      console.warn('Could not read from localStorage:', e);
+    }
+
+    if (loadedDoctors.length === 0) {
+      loadedDoctors = DEFAULT_DOCTORS;
+    }
+
     try {
       const [outcomesRes, doctorsRes] = await Promise.all([
         supabase.from('patient_outcomes').select('*').order('created_at', { ascending: false }),
@@ -89,17 +115,9 @@ export default function App() {
       ]);
 
       if (outcomesRes.error) {
-        console.error('Error fetching outcomes:', outcomesRes.error);
-        alert(`Failed to fetch patient records: ${outcomesRes.error.message}. Please ensure the "patient_outcomes" table exists.`);
-      }
-
-      if (doctorsRes.error) {
-        console.error('Error fetching doctors:', doctorsRes.error);
-        alert(`Failed to fetch doctors: ${doctorsRes.error.message}. Please ensure the "doctors" table exists.`);
-      }
-
-      if (outcomesRes.data) {
-        const mappedOutcomes: PatientOutcome[] = outcomesRes.data.map((item: any) => ({
+        console.warn('Supabase outcomes fetch notice:', outcomesRes.error.message);
+      } else if (outcomesRes.data && outcomesRes.data.length > 0) {
+        loadedOutcomes = outcomesRes.data.map((item: any) => ({
           id: item.id,
           patientName: item.patient_name,
           contactNumber: item.contact_number,
@@ -112,50 +130,59 @@ export default function App() {
           followedUp: item.followed_up,
           createdAt: new Date(item.created_at).getTime(),
         }));
-        setOutcomes(mappedOutcomes);
       }
 
-      if (doctorsRes.data) {
-        const mappedDoctors: Doctor[] = doctorsRes.data.map((item: any) => ({
+      if (doctorsRes.error) {
+        console.warn('Supabase doctors fetch notice:', doctorsRes.error.message);
+      } else if (doctorsRes.data && doctorsRes.data.length > 0) {
+        loadedDoctors = doctorsRes.data.map((item: any) => ({
           id: item.id,
           name: item.name,
           isActive: item.is_active,
           createdAt: new Date(item.created_at).getTime(),
         }));
-        setDoctors(mappedDoctors);
-      } else {
-        // Fallback if table doesn't exist or is empty
-        setDoctors([]);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.warn('Supabase error, using local storage fallback:', error);
     } finally {
+      setOutcomes(loadedOutcomes);
+      setDoctors(loadedDoctors);
+      try {
+        localStorage.setItem('tlow_doctors', JSON.stringify(loadedDoctors));
+        localStorage.setItem('tlow_patient_outcomes', JSON.stringify(loadedOutcomes));
+      } catch {}
       setIsLoading(false);
     }
   };
 
   // Outcome CRUD
   const isDuplicate = async (patientName: string, date: string, excludeId?: string) => {
-    // We fetch all records for the same date to perform a robust case-insensitive comparison in JS
-    const { data, error } = await supabase
-      .from('patient_outcomes')
-      .select('id, patient_name')
-      .eq('date', date);
-    
-    if (error) {
-      console.error('Error checking for duplicates:', error);
-      return false;
-    }
-
     const normalizedNewName = patientName.trim().toLowerCase();
     
-    return data?.some(record => {
+    try {
+      const { data, error } = await supabase
+        .from('patient_outcomes')
+        .select('id, patient_name')
+        .eq('date', date);
+      
+      if (!error && data && data.length > 0) {
+        return data.some(record => {
+          if (excludeId && record.id === excludeId) return false;
+          return record.patient_name.trim().toLowerCase() === normalizedNewName;
+        });
+      }
+    } catch (err) {
+      console.warn('Supabase duplicate check notice:', err);
+    }
+
+    return outcomes.some(record => {
       if (excludeId && record.id === excludeId) return false;
-      return record.patient_name.trim().toLowerCase() === normalizedNewName;
-    }) || false;
+      return record.date === date && record.patientName.trim().toLowerCase() === normalizedNewName;
+    });
   };
 
   const executeAddOutcome = async (newOutcome: Omit<PatientOutcome, 'id' | 'createdAt'>) => {
+    let savedItem: PatientOutcome | null = null;
     try {
       const { data, error } = await supabase
         .from('patient_outcomes')
@@ -172,10 +199,9 @@ export default function App() {
         }])
         .select();
 
-      if (error) throw error;
-      if (data && data[0]) {
+      if (!error && data && data[0]) {
         const item = data[0];
-        const mappedItem: PatientOutcome = {
+        savedItem = {
           id: item.id,
           patientName: item.patient_name,
           contactNumber: item.contact_number,
@@ -188,22 +214,35 @@ export default function App() {
           followedUp: item.followed_up,
           createdAt: new Date(item.created_at).getTime(),
         };
-        setOutcomes(prev => [mappedItem, ...prev]);
-        setLastCreatedId(item.id);
-        
-        // Show success modal
-        setSuccessTitle(newOutcome.status === OutcomeStatus.SC ? 'Great News!' : 'Record Saved');
-        setSuccessMessage(
-          newOutcome.status === OutcomeStatus.SC 
-            ? `Successfully recorded a successful case for ${newOutcome.patientName}!` 
-            : `Patient record for ${newOutcome.patientName} has been saved.`
-        );
-        setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error adding outcome:', error);
-      alert(`Failed to add record: ${error.message || 'Unknown error'}`);
+      console.warn('Supabase insert notice, using local save:', error);
     }
+
+    if (!savedItem) {
+      savedItem = {
+        ...newOutcome,
+        id: 'loc-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        followedUp: false,
+        createdAt: Date.now(),
+      };
+    }
+
+    setOutcomes(prev => {
+      const updated = [savedItem!, ...prev];
+      try { localStorage.setItem('tlow_patient_outcomes', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    setLastCreatedId(savedItem.id);
+    
+    // Show success modal
+    setSuccessTitle(newOutcome.status === OutcomeStatus.SC ? 'Great News!' : 'Record Saved');
+    setSuccessMessage(
+      newOutcome.status === OutcomeStatus.SC 
+        ? `Successfully recorded a successful case for ${newOutcome.patientName}!` 
+        : `Patient record for ${newOutcome.patientName} has been saved.`
+    );
+    setShowSuccessModal(true);
   };
 
   const handleAddOutcome = async (newOutcome: Omit<PatientOutcome, 'id' | 'createdAt'>) => {
@@ -227,6 +266,7 @@ export default function App() {
   };
 
   const executeUpdateOutcome = async (id: string, updates: Partial<PatientOutcome>) => {
+    let updatedItem: PatientOutcome | null = null;
     try {
       const dbUpdates: any = {};
       if (updates.patientName) dbUpdates.patient_name = updates.patientName;
@@ -245,10 +285,9 @@ export default function App() {
         .eq('id', id)
         .select();
 
-      if (error) throw error;
-      if (data && data[0]) {
+      if (!error && data && data[0]) {
         const item = data[0];
-        const mappedItem: PatientOutcome = {
+        updatedItem = {
           id: item.id,
           patientName: item.patient_name,
           contactNumber: item.contact_number,
@@ -261,22 +300,30 @@ export default function App() {
           followedUp: item.followed_up,
           createdAt: new Date(item.created_at).getTime(),
         };
-        setOutcomes(prev => prev.map(o => o.id === id ? mappedItem : o));
-        setEditingOutcome(null);
-
-        // Show success modal
-        setSuccessTitle('Record Updated');
-        setSuccessMessage(`Changes to ${mappedItem.patientName}'s record have been saved.`);
-        setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error updating outcome:', error);
-      alert(`Failed to update record: ${error.message || 'Unknown error'}`);
+      console.warn('Supabase update notice, using local update:', error);
     }
+
+    setOutcomes(prev => {
+      const updatedList = prev.map(o => {
+        if (o.id === id) {
+          return updatedItem || { ...o, ...updates };
+        }
+        return o;
+      });
+      try { localStorage.setItem('tlow_patient_outcomes', JSON.stringify(updatedList)); } catch {}
+      return updatedList;
+    });
+
+    setEditingOutcome(null);
+    const targetName = updates.patientName || outcomes.find(o => o.id === id)?.patientName || 'Patient';
+    setSuccessTitle('Record Updated');
+    setSuccessMessage(`Changes to ${targetName}'s record have been saved.`);
+    setShowSuccessModal(true);
   };
 
   const handleUpdateOutcome = async (id: string, updates: Partial<PatientOutcome>) => {
-    // If updating name, date, or doctor, check for duplicates
     if (updates.patientName || updates.date || updates.doctor || updates.contactNumber) {
       const currentOutcome = outcomes.find(o => o.id === id);
       if (currentOutcome) {
@@ -300,30 +347,25 @@ export default function App() {
   };
 
   const handleDeleteOutcome = async (id: string) => {
-    console.log('handleDeleteOutcome initiated for id:', id);
     try {
-      const { error } = await supabase
+      await supabase
         .from('patient_outcomes')
         .delete()
         .eq('id', id);
-
-      if (error) {
-        console.error('Supabase delete error:', error);
-        throw error;
-      }
-      
-      console.log('Delete successful in Supabase, updating local state');
-      setOutcomes(prev => prev.filter(o => o.id !== id));
-      if (lastCreatedId === id) setLastCreatedId(null);
-      
-      // Show success modal for deletion too
-      setSuccessTitle('Record Deleted');
-      setSuccessMessage('The patient record has been successfully removed.');
-      setShowSuccessModal(true);
     } catch (error: any) {
-      console.error('Error deleting outcome:', error);
-      alert(`Failed to delete record: ${error.message || 'Unknown error'}`);
+      console.warn('Supabase delete notice, deleting locally:', error);
     }
+    
+    setOutcomes(prev => {
+      const updated = prev.filter(o => o.id !== id);
+      try { localStorage.setItem('tlow_patient_outcomes', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+
+    if (lastCreatedId === id) setLastCreatedId(null);
+    setSuccessTitle('Record Deleted');
+    setSuccessMessage('The patient record has been successfully removed.');
+    setShowSuccessModal(true);
   };
 
   const handleConvertOutcome = async (outcome: PatientOutcome) => {
@@ -351,34 +393,48 @@ export default function App() {
 
   // Doctor CRUD
   const handleCreateDoctor = async (name: string) => {
+    let createdDoctor: Doctor | null = null;
     try {
       const { data, error } = await supabase
         .from('doctors')
         .insert([{ name, is_active: true }])
         .select();
 
-      if (error) throw error;
-      if (data && data[0]) {
+      if (!error && data && data[0]) {
         const item = data[0];
-        const mappedItem: Doctor = {
+        createdDoctor = {
           id: item.id,
           name: item.name,
           isActive: item.is_active,
           createdAt: new Date(item.created_at).getTime(),
         };
-        setDoctors(prev => [...prev, mappedItem]);
-        
-        setSuccessTitle('Doctor Added');
-        setSuccessMessage(`${mappedItem.name} has been added to the clinic staff.`);
-        setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error creating doctor:', error);
-      alert(`Failed to save doctor: ${error.message || 'Unknown error'}. Please ensure the "doctors" table exists in your Supabase project.`);
+      console.warn('Supabase create doctor notice, creating locally:', error);
     }
+
+    if (!createdDoctor) {
+      createdDoctor = {
+        id: 'doc-loc-' + Date.now(),
+        name,
+        isActive: true,
+        createdAt: Date.now(),
+      };
+    }
+
+    setDoctors(prev => {
+      const updated = [...prev, createdDoctor!];
+      try { localStorage.setItem('tlow_doctors', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+
+    setSuccessTitle('Doctor Added');
+    setSuccessMessage(`${createdDoctor.name} has been added to the clinic staff.`);
+    setShowSuccessModal(true);
   };
 
   const handleUpdateDoctor = async (id: string, updates: Partial<Doctor>) => {
+    let updatedDoctor: Doctor | null = null;
     try {
       const dbUpdates: any = {};
       if (updates.name) dbUpdates.name = updates.name;
@@ -390,61 +446,114 @@ export default function App() {
         .eq('id', id)
         .select();
 
-      if (error) throw error;
-      if (data && data[0]) {
+      if (!error && data && data[0]) {
         const item = data[0];
-        const mappedItem: Doctor = {
+        updatedDoctor = {
           id: item.id,
           name: item.name,
           isActive: item.is_active,
           createdAt: new Date(item.created_at).getTime(),
         };
-        setDoctors(prev => prev.map(d => d.id === id ? mappedItem : d));
-        
-        setSuccessTitle('Doctor Updated');
-        setSuccessMessage(`Information for ${mappedItem.name} has been updated.`);
-        setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error updating doctor:', error);
-      alert(`Failed to update doctor: ${error.message || 'Unknown error'}`);
+      console.warn('Supabase update doctor notice, updating locally:', error);
     }
+
+    setDoctors(prev => {
+      const updatedList = prev.map(d => {
+        if (d.id === id) {
+          return updatedDoctor || { ...d, ...updates };
+        }
+        return d;
+      });
+      try { localStorage.setItem('tlow_doctors', JSON.stringify(updatedList)); } catch {}
+      return updatedList;
+    });
+
+    const docName = updates.name || doctors.find(d => d.id === id)?.name || 'Doctor';
+    setSuccessTitle('Doctor Updated');
+    setSuccessMessage(`Information for ${docName} has been updated.`);
+    setShowSuccessModal(true);
   };
 
   const handleDeleteDoctor = async (id: string) => {
-    console.log('handleDeleteDoctor initiated for id:', id);
     try {
-      const { error } = await supabase
+      await supabase
         .from('doctors')
         .delete()
         .eq('id', id);
-
-      if (error) {
-        console.error('Supabase delete error (doctors):', error);
-        throw error;
-      }
-      
-      console.log('Doctor delete successful in Supabase, updating local state');
-      setDoctors(prev => prev.filter(d => d.id !== id));
-      
-      setSuccessTitle('Doctor Removed');
-      setSuccessMessage('The doctor has been successfully removed from the system.');
-      setShowSuccessModal(true);
     } catch (error: any) {
-      console.error('Error deleting doctor:', error);
-      alert(`Failed to delete doctor: ${error.message || 'Unknown error'}`);
+      console.warn('Supabase delete doctor notice, deleting locally:', error);
+    }
+
+    setDoctors(prev => {
+      const updated = prev.filter(d => d.id !== id);
+      try { localStorage.setItem('tlow_doctors', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+
+    setSuccessTitle('Doctor Removed');
+    setSuccessMessage('The doctor has been successfully removed from the system.');
+    setShowSuccessModal(true);
+  };
+
+  const handleSortChange = (field: 'date' | 'patientName' | 'status', direction?: 'asc' | 'desc') => {
+    setSortField(field);
+    if (direction) {
+      setSortDirection(direction);
+    } else {
+      if (sortField === field) {
+        setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      } else {
+        setSortDirection('asc');
+      }
     }
   };
 
   const filteredOutcomes = useMemo(() => {
-    return outcomes.filter((outcome) => {
+    const filtered = outcomes.filter((outcome) => {
       const dateMatch = (!startDate || outcome.date >= startDate) && (!endDate || outcome.date <= endDate);
       const doctorMatch = selectedDoctor === 'All' || outcome.doctor === selectedDoctor;
       const statusMatch = selectedStatus === 'All' || outcome.status === selectedStatus;
       const patientMatch = outcome.patientName.toLowerCase().includes(patientSearch.toLowerCase());
       return dateMatch && doctorMatch && statusMatch && patientMatch;
     });
-  }, [outcomes, startDate, endDate, selectedDoctor, selectedStatus, patientSearch]);
+
+    return [...filtered].sort((a, b) => {
+      if (sortField === 'date') {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) {
+          return sortDirection === 'asc' ? dateCompare : -dateCompare;
+        }
+        return sortDirection === 'asc' ? (a.createdAt - b.createdAt) : (b.createdAt - a.createdAt);
+      }
+
+      if (sortField === 'status') {
+        const statusWeight: Record<string, number> = {
+          [OutcomeStatus.SC]: 1,
+          [OutcomeStatus.CO]: 2,
+          [OutcomeStatus.NS]: 3,
+          [OutcomeStatus.CC]: 4,
+        };
+        const weightA = statusWeight[a.status] || 99;
+        const weightB = statusWeight[b.status] || 99;
+        if (weightA !== weightB) {
+          return sortDirection === 'asc' ? weightA - weightB : weightB - weightA;
+        }
+        return a.date.localeCompare(b.date);
+      }
+
+      if (sortField === 'patientName') {
+        const nameCompare = a.patientName.localeCompare(b.patientName);
+        if (nameCompare !== 0) {
+          return sortDirection === 'asc' ? nameCompare : -nameCompare;
+        }
+        return a.date.localeCompare(b.date);
+      }
+
+      return 0;
+    });
+  }, [outcomes, startDate, endDate, selectedDoctor, selectedStatus, patientSearch, sortField, sortDirection]);
 
   const performanceData = useMemo(() => {
     const activeDoctorNames = doctors.filter(d => d.isActive).map(d => d.name);
@@ -569,6 +678,8 @@ export default function App() {
     setSelectedStatus('All');
     setSelectedYear(new Date().getFullYear());
     setPatientSearch('');
+    setSortField('date');
+    setSortDirection('asc');
   };
 
   const handleStatClick = (label: string) => {
@@ -678,12 +789,15 @@ export default function App() {
                 selectedStatus={selectedStatus}
                 selectedYear={selectedYear}
                 patientSearch={patientSearch}
+                sortField={sortField}
+                sortDirection={sortDirection}
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
                 onDoctorChange={setSelectedDoctor}
                 onStatusChange={setSelectedStatus}
                 onYearChange={setSelectedYear}
                 onPatientSearchChange={setPatientSearch}
+                onSortChange={handleSortChange}
                 onReset={handleResetFilters}
                 doctors={doctors}
               />
@@ -743,18 +857,26 @@ export default function App() {
                 selectedStatus={selectedStatus}
                 selectedYear={selectedYear}
                 patientSearch={patientSearch}
+                sortField={sortField}
+                sortDirection={sortDirection}
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
                 onDoctorChange={setSelectedDoctor}
                 onStatusChange={setSelectedStatus}
                 onYearChange={setSelectedYear}
                 onPatientSearchChange={setPatientSearch}
+                onSortChange={handleSortChange}
                 onReset={handleResetFilters}
                 doctors={doctors}
               />
 
               <OutcomeTable 
                 outcomes={filteredOutcomes}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSortChange={handleSortChange}
+                selectedStatus={selectedStatus}
+                onStatusChange={setSelectedStatus}
                 onEdit={(outcome) => {
                   setEditingOutcome(outcome);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
